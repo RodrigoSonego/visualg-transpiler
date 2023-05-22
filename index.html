@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Programa</title>
+	<style type="text/css" media="screen">
+		button {
+			margin-top: 15px;
+		}
+		
+		#editor {
+			position: absolute;
+			top: 0;
+			right: 50%;
+			bottom: 0;
+			left: 0;
+		}
+
+		#direita-editor {
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 50%;
+			margin-left: 10px;
+		}
+
+		table, th, td {
+			border: 1px solid;
+			margin-top: 15px;
+		}
+
+	</style>
+</head>
+
+<body>
+
+<div id="editor">Algoritmo "semnome"
+
+// Seção de Declarações das variáveis
+Var
+width: inteiro
+
+// Seção de Comandos, procedimento, funções, operadores, etc...
+Inicio
+
+	width <- 7
+
+	escreva("olá mundo")
+	escreval(width)
+
+	escreva("olá mundo novamente")
+	escreva(width)
+
+fiMALgoritmo
+</div>
+
+	<div id="direita-editor">
+		<button onclick="processa()">&nbsp&nbsp"Compila"&nbsp&nbsp</button>
+		
+
+		<table>
+			<thead>
+				
+				<tr id="reservadas">
+					<th>Palavra Reservada</th>
+					<th>Contador</th>
+				</tr>
+			</thead>
+				
+			<tbody id="table">
+					
+			</tbody>
+		</table> 
+	</div>
+
+
+	<!-- FAZ FUNCIONAR O EDITOR FODÃO -->
+	<script src="/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+	<script>
+		var editor = ace.edit("editor");
+		editor.setTheme("ace/theme/monokai");
+		editor.session.setMode("ace/mode/portugol");
+	</script>
+
+	<!-- NOSSO SHCRIPT -->
+	<script src="index.js" type="text/javascript" defer></script>
+</body>
+
+</html>

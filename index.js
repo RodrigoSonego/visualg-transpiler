@@ -127,6 +127,13 @@ for (const palavraReservada of palavrasReservadas) {
 
 const processa = () => {
 	console.log("processando");
+	
+	contaToken();
+
+	traduzToken();
+}
+
+const contaToken = () => {
 	const textoDaIde = editor.getValue().toLowerCase();
 	
 	// for (const palavraReservada of palavrasReservadas) {
@@ -136,4 +143,27 @@ const processa = () => {
         
 		contadoresHtml[i].textContent = (textoDaIde.match(regex) || []).length;
 	}
+}
+
+const traduzToken = () => {
+	const textoDaIde = editor.getValue().toLowerCase();
+
+	const linhas = textoDaIde.split("\n");
+
+	console.log(linhas.length);
+
+	for (const linha of linhas) {
+		procuraAtribuicao(linha);
+	}
+}
+
+const procuraAtribuicao = (linha) => {
+	const temAtribuicao = linha.includes("<-") || linha.includes(":=")
+
+	if(temAtribuicao === false) {
+		return;
+	}
+
+	console.log(linha.length)
+
 }

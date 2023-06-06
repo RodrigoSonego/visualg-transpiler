@@ -128,21 +128,7 @@ for (const palavraReservada of palavrasReservadas) {
 const processa = () => {
 	console.log("processando");
 	
-	contaToken();
-
 	traduzToken();
-}
-
-const contaToken = () => {
-	const textoDaIde = editor.getValue().toLowerCase();
-	
-	// for (const palavraReservada of palavrasReservadas) {
-	for (let i = 0; i < palavrasReservadas.length; ++i) {
-		const palavraReservada = palavrasReservadas[i];
-		const regex = new RegExp('^(?!\/\/).*\\b'+ palavraReservada + '\\b', "gm");
-        
-		contadoresHtml[i].textContent = (textoDaIde.match(regex) || []).length;
-	}
 }
 
 const traduzToken = () => {
@@ -150,20 +136,62 @@ const traduzToken = () => {
 
 	const linhas = textoDaIde.split("\n");
 
-	console.log(linhas.length);
-
-	for (const linha of linhas) {
-		procuraAtribuicao(linha);
-	}
-}
-
-const procuraAtribuicao = (linha) => {
-	const temAtribuicao = linha.includes("<-") || linha.includes(":=")
-
-	if(temAtribuicao === false) {
+	const iPrimeiraLinhaValida = skipaLinhasVazias(linhas);
+	if (iPrimeiraLinhaValida == linhas.lengh - 1) {
+		console.log("TA TUDO VAZIO");
 		return;
 	}
 
-	console.log(linha.length)
+	const primeiraLinha = linhas[iPrimeiraLinhaValida];
+	const prox = tokenizaProx(primeiraLinha);
 
+}
+
+
+const tokenizaProx = string => {
+	for (let i = 0; i < string.length; ++i) {
+		const char = string[i];
+		if (ehSkipavel(char)) continue;
+
+		const tamanhoDoToken = extraiTamanhoToken(string, i);
+		const token = string.substring(i, tamanhoDoToken);
+		// console.log(`achei token '${token}'`);
+		i += token.length;
+		// console.log(`skiparei em '${token.length}'`);
+	}
+
+}
+
+const extraiTamanhoToken = (string, comeco) => {
+	console.log(`extraindo a partir de ${comeco} ou '${string[comeco]}'`);
+	let i;
+	for (i = comeco; i < string.length; ++i) {
+		const char = string[i];
+		// TODO: tem tokens que nao necessitam que tenha caracteres "skipáveis" entre eles
+		if (ehSkipavel(char)) return i;
+	}
+	return i;
+}
+
+const ehSkipavel = char => {
+	return char === ' ';
+}
+
+/**
+ * @return {Number}
+ */
+const skipaLinhasVazias = linhas => {
+	for (let i = 0; i < linhas.length; ++i) {
+		const linha = linhas[i];
+		if (estaEmBranco(linha)) continue;
+
+		return i;		
+	}
+}
+
+const estaEmBranco = string => {
+	for (let i = 0; i < string.length; ++i) {
+		if (string[i] != ' ') return false;
+	}
+	return true;
 }

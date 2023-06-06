@@ -128,16 +128,20 @@ for (const palavraReservada of palavrasReservadas) {
 const processa = () => {
 	console.log("processando");
 	
-	traduzToken();
+	traduzTokens();
 }
 
-const traduzToken = () => {
-	const textoDaIde = editor.getValue().toLowerCase();
+// qualquer caractere que sai do nosso "alfabeto" dá sintaxe incorreta
+// ex: '
+// só na string que vale tudo
+const traduzTokens = () => {
+	const textoDaIde = editor.getValue();
 
 	const linhas = textoDaIde.split("\n");
 
 	const iPrimeiraLinhaValida = skipaLinhasVazias(linhas);
-	if (iPrimeiraLinhaValida == linhas.lengh - 1) {
+	const nenhumaLinhaValida = iPrimeiraLinhaValida == linhas.lengh - 1;
+	if (nenhumaLinhaValida) {
 		console.log("TA TUDO VAZIO");
 		return;
 	}
@@ -145,6 +149,7 @@ const traduzToken = () => {
 	const primeiraLinha = linhas[iPrimeiraLinhaValida];
 	const prox = tokenizaProx(primeiraLinha);
 
+	
 }
 
 
@@ -168,7 +173,7 @@ const extraiTamanhoToken = (string, comeco) => {
 	for (i = comeco; i < string.length; ++i) {
 		const char = string[i];
 		// TODO: tem tokens que nao necessitam que tenha caracteres "skipáveis" entre eles
-		if (ehSkipavel(char)) return i;
+		if (char == " ") return i;
 	}
 	return i;
 }
@@ -185,7 +190,7 @@ const skipaLinhasVazias = linhas => {
 		const linha = linhas[i];
 		if (estaEmBranco(linha)) continue;
 
-		return i;		
+		return i;
 	}
 }
 

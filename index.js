@@ -104,27 +104,6 @@ const operadoresLogicos = [
 ]
 
 
-const contadoresHtml = [];
-
-for (const palavraReservada of palavrasReservadas) {
-	// console.log(palavraReservada);
-	
-	const linha = document.createElement("tr");
-
-	const colunaPalavraRes = document.createElement("td");
-	colunaPalavraRes.textContent = palavraReservada;
-	
-	const colunaContador = document.createElement("td");
-	colunaContador.textContent = 0;
-
-	linha.appendChild(colunaPalavraRes);
-	linha.appendChild(colunaContador);
-	tabelitaEl.appendChild(linha);
-
-	contadoresHtml.push(colunaContador);
-}
-
-
 const processa = () => {
 	console.log("processando");
 	
@@ -139,36 +118,61 @@ const traduzTokens = () => {
 
 	const linhas = textoDaIde.split("\n");
 
-	const iPrimeiraLinhaValida = skipaLinhasVazias(linhas);
-	const nenhumaLinhaValida = iPrimeiraLinhaValida == linhas.lengh - 1;
+	const iPrimeiraLinhaValida = skipaLinhasVazias(linhas, 0);
+	const nenhumaLinhaValida = iPrimeiraLinhaValida == linhas.length - 1 || linhas.length == 0;
 	if (nenhumaLinhaValida) {
 		console.log("TA TUDO VAZIO");
 		return;
 	}
 
 	const primeiraLinha = linhas[iPrimeiraLinhaValida];
-	const prox = tokenizaProx(primeiraLinha);
-
+	const primeirosTokens = tokenizaProx(primeiraLinha);
 	
+	console.log(primeirosTokens);
+
+	if(primeirosTokens[0] != "Algoritmo" || primeirosTokens[1].startsWith("\"") == false 
+		|| primeirosTokens.length != 2 ){
+		console.log("ERRO: Esperava-se 'Algoritmo' seguido de uma string");
+		return;
+	}
+	
+	const proxLinhaValida = skipaLinhasVazias(linhas, iPrimeiraLinhaValida+1);
+	console.log("prox linha valida: " + proxLinhaValida);
+	if (proxLinhaValida == linhas.length - 1) {
+		console.log("TA TUDO VAZIO PRA BAIXO DO NOME");
+		return;
+	}
+
+	const proxToken = tokenizaProx(linhas[proxLinhaValida]);
+	const isVarToken = proxToken[0].toLowerCase() == "var";
+
+	if (isVarToken) {
+		salvaVars();
+	}
+
+	traduzAlgoritmo();
 }
 
 
 const tokenizaProx = string => {
+	const tokens = [];
+
 	for (let i = 0; i < string.length; ++i) {
 		const char = string[i];
 		if (ehSkipavel(char)) continue;
 
 		const tamanhoDoToken = extraiTamanhoToken(string, i);
 		const token = string.substring(i, tamanhoDoToken);
-		// console.log(`achei token '${token}'`);
 		i += token.length;
 		// console.log(`skiparei em '${token.length}'`);
+		tokens.push(token);
 	}
 
+	return tokens;
 }
 
 const extraiTamanhoToken = (string, comeco) => {
-	console.log(`extraindo a partir de ${comeco} ou '${string[comeco]}'`);
+	// console.log(`extraindo a partir de ${comeco} ou '${string[comeco]}'`);
 	let i;
 	for (i = comeco; i < string.length; ++i) {
 		const char = string[i];
@@ -185,18 +189,30 @@ const ehSkipavel = char => {
 /**
  * @return {Number}
  */
-const skipaLinhasVazias = linhas => {
-	for (let i = 0; i < linhas.length; ++i) {
+const skipaLinhasVazias = (linhas, inicio) => {
+	for (let i = inicio; i < linhas.length; ++i) {
 		const linha = linhas[i];
-		if (estaEmBranco(linha)) continue;
+		if (estaEmBranco(linha) || linha.trim().startsWith("//")) continue;
 
 		return i;
 	}
+
+	return inicio;
 }
 
 const estaEmBranco = string => {
+	if (string == null) { return true; }
+
 	for (let i = 0; i < string.length; ++i) {
-		if (string[i] != ' ') return false;
+		if (string[i] != ' ' || string[i] != "") return false;
 	}
 	return true;
+}
+
+const salvaVars = () => {
+	//TODO: Pega as var e salva num map global com o valor inicial
+}
+
+const traduzAlgoritmo = () => {
+	//TODO: vai tokenizando e traduzindo algoritmo
 }

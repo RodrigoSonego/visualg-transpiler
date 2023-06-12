@@ -103,6 +103,7 @@ const operadoresLogicos = [
 	"xou",
 ]
 
+const variaveis = [];
 
 const processa = () => {
 	console.log("processando");
@@ -147,7 +148,7 @@ const traduzTokens = () => {
 	const isVarToken = proxToken[0].toLowerCase() == "var";
 
 	if (isVarToken) {
-		salvaVars();
+		salvaVars(proxLinhaValida + 1, linhas);
 	}
 
 	traduzAlgoritmo();
@@ -209,8 +210,15 @@ const estaEmBranco = string => {
 	return true;
 }
 
-const salvaVars = () => {
-	//TODO: Pega as var e salva num map global com o valor inicial
+const salvaVars = (startIndex, linhas) => {
+	for (let i = startIndex; i < linhas.length; i++) {
+		if (linhas[i].toLowerCase() == "inicio") { return; }
+		if (linhas[i].trim().startsWith("//") || linhas[i].trim() == "") { continue; }
+
+		const tokens = tokenizaProx(linhas[i]);
+		console.log(tokens);
+
+	}
 }
 
 const traduzAlgoritmo = () => {

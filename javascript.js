@@ -1,10 +1,9 @@
+const processaJs =(function() {
 
-const processaPy = (function() {
+
 
 // TODO: test const evaluation
 // TODO: variáveis locais ? funções
-
-
 
 
 const tabelitaEl   = document.getElementById("table");
@@ -108,9 +107,10 @@ const operadoresLogicos = [
 
 const variaveis = [];
 
+console.log("deu");
+
 const processa = () => {
-	console.log("processando");
-	
+	console.log("processando");	
 	traduzTokens();
 }
 
@@ -225,7 +225,6 @@ const salvaVars = (startIndex, linhas) => {
 const traduzAlgoritmo = () => {
 	//TODO: vai tokenizando e traduzindo algoritmo
 }
-
 
 return processa;
 })()

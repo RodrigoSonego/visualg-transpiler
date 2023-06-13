@@ -98,34 +98,16 @@ const operadoresLogicos = [
 ]
 
 
-const contadoresHtml = [];
-
-for (const palavraReservada of palavrasReservadas) {
-	// console.log(palavraReservada);
-	
-	const linha = document.createElement("tr");
-
-	const colunaPalavraRes = document.createElement("td");
-	colunaPalavraRes.textContent = palavraReservada;
-	
-	const colunaContador = document.createElement("td");
-	colunaContador.textContent = 0;
-
-	linha.appendChild(colunaPalavraRes);
-	linha.appendChild(colunaContador);
-	tabelitaEl.appendChild(linha);
-
-	contadoresHtml.push(colunaContador);
-}
-
-
 document.addEventListener("keydown", evt => {
 	if (evt.ctrlKey) {
-		if (evt.key == "Enter") {  processa(); return; }
+		if (evt.key == "Enter") { 
+			processa();
+			document.getElementById("jsTabButton").click();
+			return;
+		}
 		if (evt.key == "Shift") { console.clear(); return; }
 	} 
 });
-
 
 
 // const mapa = new Map();
@@ -139,7 +121,7 @@ let osVar = new Map();
 
 const processa = () => {
 	programaTraduzido = "";
-	osVar = new Map();
+	osVar.clear();
 
 	traduzJavascript();
 }
@@ -168,7 +150,7 @@ const traduzJavascript = () => {
 	console.log("1: ok, programa:\n" + programaTraduzido );
 	
 	const proxLinha = linhas[linhasPraSkippar];
-	if (transpilaAteInicio(proxLinha, linhasPraSkippar) === false) return;
+	if (transpilaSegundaLinhaValida(proxLinha, linhasPraSkippar) === false) return;
 
 
 
@@ -186,7 +168,7 @@ const traduzJavascript = () => {
 }
 
 /** @param {String} linha  @param {Number} indiceDela  @returns {Boolean|Number} */
-const transpilaAteInicio = (linha, indiceDela) => {
+const transpilaSegundaLinhaValida = (linha, indiceDela) => {
 	const charsEmBranco = contaEmBranco(linha, 0);
 	linha = linha.substring(charsEmBranco);
 

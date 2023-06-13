@@ -1,14 +1,6 @@
 const processaJs =(function() {
 
-
-
-// TODO: test const evaluation
-// TODO: variáveis locais ? funções
-
-
 const tabelitaEl   = document.getElementById("table");
-const tabelitaEl2  = tabelitaEl.getElementsByTagName("tbody");
-const reservadasEl = document.getElementById("reservadas");
 
 // TODO: até, então, faça, fimfunção, função, não, senão
 
@@ -105,84 +97,225 @@ const operadoresLogicos = [
 	"xou",
 ]
 
-const variaveis = [];
 
-console.log("deu");
+const contadoresHtml = [];
+
+for (const palavraReservada of palavrasReservadas) {
+	// console.log(palavraReservada);
+	
+	const linha = document.createElement("tr");
+
+	const colunaPalavraRes = document.createElement("td");
+	colunaPalavraRes.textContent = palavraReservada;
+	
+	const colunaContador = document.createElement("td");
+	colunaContador.textContent = 0;
+
+	linha.appendChild(colunaPalavraRes);
+	linha.appendChild(colunaContador);
+	tabelitaEl.appendChild(linha);
+
+	contadoresHtml.push(colunaContador);
+}
+
+
+document.addEventListener("keydown", evt => {
+	if (evt.ctrlKey) {
+		if (evt.key == "Enter") {  processa(); return; }
+		if (evt.key == "Shift") { console.clear(); return; }
+	} 
+});
+
+
+
+// const mapa = new Map();
+// mapa.set("escreva", "console.log");
+// mapa.set("escreva", "");
+
+
+let programaTraduzido = "";
+let osVar = new Map();
+
 
 const processa = () => {
-	console.log("processando");	
-	traduzTokens();
+	programaTraduzido = "";
+	osVar = new Map();
+
+	traduzJavascript();
 }
+
 
 // qualquer caractere que sai do nosso "alfabeto" dá sintaxe incorreta
 // ex: '
 // só na string que vale tudo
-const traduzTokens = () => {
+const traduzJavascript = () => {
 	const textoDaIde = editor.getValue();
 
 	const linhas = textoDaIde.split("\n");
 
-	const iPrimeiraLinhaValida = skipaLinhasVazias(linhas, 0);
-	const nenhumaLinhaValida = iPrimeiraLinhaValida == linhas.length - 1 || linhas.length == 0;
+	const iPrimeiraLinhaValida = contaLinhasVazias(linhas, 0);
+	const nenhumaLinhaValida = iPrimeiraLinhaValida == linhas.lengh - 1;
 	if (nenhumaLinhaValida) {
-		console.log("TA TUDO VAZIO");
+		console.error("programa vazio");
 		return;
 	}
 
+	// aqui sabemos que tem alguma linha válida
 	const primeiraLinha = linhas[iPrimeiraLinhaValida];
-	const primeirosTokens = tokenizaProx(primeiraLinha);
+	if (transpilaPrimeiraLinhaValida(primeiraLinha, iPrimeiraLinhaValida) === false) return;
+	let linhasPraSkippar = contaLinhasVazias(linhas, iPrimeiraLinhaValida+1);
 	
-	console.log(primeirosTokens);
-
-	if (primeirosTokens[0] != "Algoritmo" || primeirosTokens[1].startsWith("\"") == false || primeirosTokens.length != 2 ) {
-		console.log("ERRO: Esperava-se 'Algoritmo' seguido de uma string");
-		return;
-	}
+	console.log("1: ok, programa:\n" + programaTraduzido );
 	
-	const proxLinhaValida = skipaLinhasVazias(linhas, iPrimeiraLinhaValida+1);
-	console.log("prox linha valida: " + proxLinhaValida);
-	if (proxLinhaValida == linhas.length - 1) {
-		console.log("TA TUDO VAZIO PRA BAIXO DO NOME");
-		return;
+	const proxLinha = linhas[linhasPraSkippar];
+	if (transpilaAteInicio(proxLinha, linhasPraSkippar) === false) return;
+
+
+
+	return;
+
+
+	for (let i = iPrimeiraLinhaValida; i < linhas.length; ++i) {
+		const linha = linhas[i];
+		if (estaEmBrancoOuComentario(linha)) continue;
+		
+		console.log(`linha '${linha}' linhas`);
+		
+		// tokenizaLinha(linha);
+	}
+}
+
+/** @param {String} linha  @param {Number} indiceDela  @returns {Boolean|Number} */
+const transpilaAteInicio = (linha, indiceDela) => {
+	const charsEmBranco = contaEmBranco(linha, 0);
+	linha = linha.substring(charsEmBranco);
+
+	// primeiro token pode ser "inicio" ou "var"
+	const token = proxToken(linha, 0);
+	const tokenLower = token.toLowerCase();
+	if (tokenLower == "inicio") {
+
+		linha = linha.substring(6).trimStart();
+
+		const prox = proxToken(linha, 0);
+		if (prox !== false) {
+			console.error(`Linha ${indiceDela+1}: Sintaxe incorreta`);
+			return false;
+		}
+
+		return true;
 	}
 
-	const proxToken = tokenizaProx(linhas[proxLinhaValida]);
-	const isVarToken = proxToken[0].toLowerCase() == "var";
+	if (tokenLower == "var") {
+		linha = linha.substring(3).trimStart();
+		
+		// const prox = proxToken(linha.trimStart(), 0);
 
-	if (isVarToken) {
-		salvaVars(proxLinhaValida + 1, linhas);
+		adicionaVarsAposLinhaDoVars(linha);
+
 	}
 
-	traduzAlgoritmo();
+}
+
+/** @param {String} linha  @param {Number} indiceDela  @returns {Boolean} */
+const adicionaVarsAposLinhaDoVars = (linha, indiceDela) => {
+	let charsAteAgora = 0;
+
+	let charsAteAgora2 = 0;
+	while (true) {
+		
+		const osBranco = contaEmBranco(linha, charsAteAgora);
+		linha = linha.substring(osBranco);
+		const prox = proxToken(linha);
+		if (prox === false) break;
+		
+		console.log(`achei token '${prox}'`);
+		
+		charsAteAgora += osBranco;
+
+		++charsAteAgora2;
+		if (charsAteAgora2 == 16) break;
+	}
 }
 
 
-const tokenizaProx = string => {
-	const tokens = [];
+/** @param {String} linha  @param {Number} indiceDela  @returns {Boolean} */
+const transpilaPrimeiraLinhaValida = (linha, indiceDela) => {
+	const charsEmBranco = contaEmBranco(linha, 0);
+	linha = linha.substring(charsEmBranco);
 
-	for (let i = 0; i < string.length; ++i) {
-		const char = string[i];
-		if (ehSkipavel(char)) continue;
+	const primeiroToken = proxToken(linha, 0);
+	if (primeiroToken.toLowerCase() != "algoritmo") {
+		console.error(`Linha ${indiceDela+1}: Comando fora da seção apropriada`);
+		return false;
+	}
+	
+	let charsAteAgora = primeiroToken.length;
+	charsAteAgora += contaEmBranco(linha, charsAteAgora);
 
-		const tamanhoDoToken = extraiTamanhoToken(string, i);
-		const token = string.substring(i, tamanhoDoToken);
-		i += token.length;
-		// console.log(`skiparei em '${token.length}'`);
-		tokens.push(token);
+	const segundoToken = proxToken(linha, charsAteAgora);
+	if (!ehString(segundoToken)) {
+		console.error(`Linha ${indiceDela+1}: Sintaxe incorreta`);
+		return false;
 	}
 
-	return tokens;
+	programaTraduzido += "// programa " + segundoToken + "\n";
+
+	charsAteAgora += segundoToken.length;
+	const terceiroToken = proxToken(linha, charsAteAgora);
+	if (terceiroToken !== false) {
+		console.error(`Linha ${indiceDela+1}: Token nao identificado '${terceiroToken}'`);
+	}
+
+	return true;
 }
 
-const extraiTamanhoToken = (string, comeco) => {
-	// console.log(`extraindo a partir de ${comeco} ou '${string[comeco]}'`);
+/** @param {String} token  @returns {Boolean}  */
+const ehString = token => {
+	return token.startsWith("\"");
+}
+
+const contaEmBranco = (linha, comeco) => {
 	let i;
-	for (i = comeco; i < string.length; ++i) {
-		const char = string[i];
-		// TODO: tem tokens que nao necessitam que tenha caracteres "skipáveis" entre eles
-		if (char == " ") return i;
+	for (i = comeco; i < linha.length; ++i) {
+		const char = linha[i];
+		if (ehSkipavel(char)) continue;
+		return i - comeco;
 	}
-	return i;
+	return i - comeco;
+}
+
+/** @param {String} linha @param {Number} comeco @returns {String} */
+const proxToken = (linha, comeco) => {
+	const acabou = comeco == linha.length - 1;
+	if (acabou) return false;
+	
+	let i;
+	for (i = comeco; i < linha.length; ++i) {
+		const char = linha[i];
+		if (char == "\"") {
+			return extraiString(linha, i);
+		}
+
+		if (ehSkipavel(char)) break;
+	}
+
+	const token = linha.substring(comeco, i);
+	if (estaEmBrancoOuComentario(token)) return false;
+	return token;
+}
+
+
+const extraiString = (linha, comeco) => {
+	// console.log(`extraindo string de ${linha.substring(comeco)}`);
+	let i;
+	for (i = comeco + 1; i < linha.length; ++i) {
+		const char = linha[i];
+		if (char == "\"") return linha.substring(comeco, i+1);
+	}
+	
+	return false;
+	// erro, string nao fechada
 }
 
 const ehSkipavel = char => {
@@ -192,39 +325,38 @@ const ehSkipavel = char => {
 /**
  * @return {Number}
  */
-const skipaLinhasVazias = (linhas, inicio) => {
-	for (let i = inicio; i < linhas.length; ++i) {
+const skipaLinhasVazias = linhas => {
+	for (let i = 0; i < linhas.length; ++i) {
 		const linha = linhas[i];
-		if (estaEmBranco(linha) || linha.trim().startsWith("//")) continue;
+		if (estaEmBrancoOuComentario(linha)) continue;
 
 		return i;
 	}
-
-	return inicio;
 }
 
-const estaEmBranco = string => {
-	if (string == null) { return true; }
+const contaLinhasVazias = (linhas, comeco) => {
+	for (let i = comeco; i < linhas.length; ++i) {
+		const linha = linhas[i];
+		if (estaEmBrancoOuComentario(linha)) continue;
 
+		return i;
+	}
+}
+
+const estaEmBrancoOuComentario = string => {
 	for (let i = 0; i < string.length; ++i) {
-		if (string[i] != ' ' || string[i] != "") return false;
+		const char = string[i];
+		if (char == "/") {
+			if (string[i+1] == "/")
+				return true;
+			return false;
+		}
+
+		if (char != " ") return false;
 	}
 	return true;
 }
 
-const salvaVars = (startIndex, linhas) => {
-	for (let i = startIndex; i < linhas.length; i++) {
-		if (linhas[i].toLowerCase() == "inicio") { return; }
-		if (linhas[i].trim().startsWith("//") || linhas[i].trim() == "") { continue; }
-
-		const tokens = tokenizaProx(linhas[i]);
-		console.log(tokens);
-	}
-}
-
-const traduzAlgoritmo = () => {
-	//TODO: vai tokenizando e traduzindo algoritmo
-}
 
 return processa;
 })()

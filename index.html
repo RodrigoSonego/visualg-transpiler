@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<link rel="stylesheet" href="index.css">
+<script src="tab.js"></script>
 <head>
 	<title>Programa</title>
 	<style type="text/css" media="screen">
@@ -53,26 +54,26 @@ Inicio
 	escreva(width)
 
 fiMALgoritmo
+
+
+
 </div>
-
 	<div id="direita-editor">
-		<button onclick="processaPy()">&nbsp&nbsp"Compila python"&nbsp&nbsp</button>
-		<button onclick="processaJs()">&nbsp&nbsp"Compila js"&nbsp&nbsp</button>
 		
-
-		<table>
-			<thead>
-				
-				<tr id="reservadas">
-					<th>Palavra Reservada</th>
-					<th>Contador</th>
-				</tr>
-			</thead>
-				
-			<tbody id="table">
-					
-			</tbody>
-		</table> 
+		<div class ="tab"> 
+			<button id="jsTabButton" class="tablinks" onclick="openLP(event, 'js')"> JS </button>
+			<button id="pythonTabButton" class="tablinks" onclick="openLP(event, 'python')"> Python </button>
+		</div>
+		<div id="js" class="tabcontent">
+			<button onclick="processaJs()">&nbsp&nbsp"Compila js"&nbsp&nbsp</button>
+			<br> <br>
+			<input id="jsOutput" type="Text" class="inputContent" readonly></input>
+		</div>
+		<div id="python" class="tabcontent">
+			<button onclick="processaPy()">&nbsp&nbsp"Compila python"&nbsp&nbsp</button>
+			<br> <br>
+			<input id="pythonOutput" class ="inputContent" type="Text" readonly></input>
+		</div>
 	</div>
 
 

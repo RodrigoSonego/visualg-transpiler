@@ -4,13 +4,6 @@ const processaPy = (function() {
 // TODO: test const evaluation
 // TODO: variáveis locais ? funções
 
-
-
-
-const tabelitaEl   = document.getElementById("table");
-const tabelitaEl2  = tabelitaEl.getElementsByTagName("tbody");
-const reservadasEl = document.getElementById("reservadas");
-
 // TODO: até, então, faça, fimfunção, função, não, senão
 
 // fonte: https://visualg3.com.br/tabelas/
@@ -106,7 +99,7 @@ const operadoresLogicos = [
 	"xou",
 ]
 
-const variaveis = [];
+const variaveis = new Map();
 
 const processa = () => {
 	console.log("processando");
@@ -150,7 +143,8 @@ const traduzTokens = () => {
 	const isVarToken = proxToken[0].toLowerCase() == "var";
 
 	if (isVarToken) {
-		salvaVars(proxLinhaValida + 1, linhas);
+		console.log("eh var")
+		varreVars(proxLinhaValida + 1, linhas);
 	}
 
 	traduzAlgoritmo();
@@ -212,14 +206,48 @@ const estaEmBranco = string => {
 	return true;
 }
 
-const salvaVars = (startIndex, linhas) => {
+const varreVars = (startIndex, linhas) => {
 	for (let i = startIndex; i < linhas.length; i++) {
 		if (linhas[i].toLowerCase() == "inicio") { return; }
 		if (linhas[i].trim().startsWith("//") || linhas[i].trim() == "") { continue; }
 
-		const tokens = tokenizaProx(linhas[i]);
-		console.log(tokens);
+		const tokens = linhas[i].split(":");
+		if (tokens.length != 2) {
+			alert("Erro de sintaxe na linha " + (i+1));
+		}
+
+		const varNames = tokens[0].trim().split(",");
+		const type = tokens[1].trim().toLowerCase();
+		
+		console.log("names: " + varNames + " type: " + type);
+		const conseguiuSalvar = salvaVars(varNames, type);
+		
+		if (conseguiuSalvar == false) {
+			alert("Erro de sintaxe na linha " + (i+1));
+			return;
+		}
 	}
+
+}
+
+/** @param {String} varName @param {String} varType @returns {Boolean} */
+const salvaVars = (varNames, varType) => {
+	for (const varName of varNames) {
+		if (varType == "inteiro" || varType == "real") {
+			variaveis.set(varName, 0);
+		}
+		else if (varType == "caracter" || varType == "caractere") {
+			variaveis.set(varName, "");
+		}
+		else if (varType == "logico") {
+			variaveis.set(varName, false);
+		}
+		else {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 const traduzAlgoritmo = () => {

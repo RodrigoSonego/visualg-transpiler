@@ -16,4 +16,6 @@ function openLP(evt, lpName) {
 
     document.getElementById(lpName).style.display = "block";
     evt.currentTarget.className += " active";
+
+        localStorage.setItem('content', editor.getValue());
 }

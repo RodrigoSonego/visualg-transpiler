@@ -36,7 +36,10 @@
 
 <body>
 
-<div id="editor">Algoritmo "semnome"
+<div id="editor">
+
+
+Algoritmo "semnome"
 
 // Seção de Declarações das variáveis
 Var
@@ -83,6 +86,12 @@ fiMALgoritmo
 		var editor = ace.edit("editor");
 		editor.setTheme("ace/theme/monokai");
 		editor.session.setMode("ace/mode/portugol");
+		
+
+		const editorContent = editor.getValue()
+		editor.setValue(localStorage.getItem('content'))
+		
+		
 	</script>
 
 	<!-- NOSSO SHCRIPT -->

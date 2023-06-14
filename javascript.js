@@ -147,13 +147,12 @@ const traduzJavascript = () => {
 	if (transpilaPrimeiraLinhaValida(primeiraLinha, iPrimeiraLinhaValida) === false) return;
 	let linhasPraSkippar = contaLinhasVazias(linhas, iPrimeiraLinhaValida+1);
 	
-	console.log("1: ok, programa:\n" + programaTraduzido );
-	
 	const proxLinha = linhas[linhasPraSkippar];
 	if (transpilaSegundaLinhaValida(proxLinha, linhasPraSkippar) === false) return;
 
 
 
+	document.getElementById("jsOutput").value = programaTraduzido;
 	return;
 
 
@@ -165,6 +164,8 @@ const traduzJavascript = () => {
 		
 		// tokenizaLinha(linha);
 	}
+
+
 }
 
 /** @param {String} linha  @param {Number} indiceDela  @returns {Boolean|Number} */
@@ -173,13 +174,13 @@ const transpilaSegundaLinhaValida = (linha, indiceDela) => {
 	linha = linha.substring(charsEmBranco);
 
 	// primeiro token pode ser "inicio" ou "var"
-	const token = proxToken(linha, 0);
+	const token = proxPalavra(linha, 0);
 	const tokenLower = token.toLowerCase();
 	if (tokenLower == "inicio") {
 
 		linha = linha.substring(6).trimStart();
 
-		const prox = proxToken(linha, 0);
+		const prox = proxPalavra(linha, 0);
 		if (prox !== false) {
 			console.error(`Linha ${indiceDela+1}: Sintaxe incorreta`);
 			return false;
@@ -189,14 +190,41 @@ const transpilaSegundaLinhaValida = (linha, indiceDela) => {
 	}
 
 	if (tokenLower == "var") {
-		linha = linha.substring(3).trimStart();
+		linha = linha.substring(3);
+
+		// parsa linha com variáveis
+		// adicionaVarsAposLinhaDoVars(linha);
+
+		const charsEmBranco = contaEmBranco(linha, 0);
+		linha = linha.substring(charsEmBranco);
+
+		const proximoToken = proxTokenNaLinha(linha, 0)
+		if (proximoToken === false) return;
 		
+		const vazios = contaEmBranco(linha, proximoToken.length);
+		
+		const proximoToken1 = proxTokenNaLinha(linha, proximoToken.length + vazios);
+		if (proximoToken1 === false) return;
+		
+		const vazios1 = contaEmBranco(linha, proximoToken.length + vazios + proximoToken1.length);
+		
+		const proximoToken2 = proxTokenNaLinha(linha, proximoToken.length + vazios + proximoToken1.length + vazios1)
+		if (proximoToken2 === false) return;
+
+		console.log(`prox: '${proximoToken}', '${proximoToken1}', '${proximoToken2}'`);
+
+		if (proximoToken === false) {
+			console.log("nao tem token dps de var");
+		} else {
+			console.log(`token é ${proximoToken}`);
+		}
+
 		// const prox = proxToken(linha.trimStart(), 0);
 
-		adicionaVarsAposLinhaDoVars(linha);
-
+		return true;
 	}
 
+	console.error(`Linha ${indiceDela+1}: Token nao identificado '${token}'`);
 }
 
 /** @param {String} linha  @param {Number} indiceDela  @returns {Boolean} */
@@ -208,7 +236,7 @@ const adicionaVarsAposLinhaDoVars = (linha, indiceDela) => {
 		
 		const osBranco = contaEmBranco(linha, charsAteAgora);
 		linha = linha.substring(osBranco);
-		const prox = proxToken(linha);
+		const prox = proxPalavra(linha);
 		if (prox === false) break;
 		
 		console.log(`achei token '${prox}'`);
@@ -226,7 +254,7 @@ const transpilaPrimeiraLinhaValida = (linha, indiceDela) => {
 	const charsEmBranco = contaEmBranco(linha, 0);
 	linha = linha.substring(charsEmBranco);
 
-	const primeiroToken = proxToken(linha, 0);
+	const primeiroToken = proxPalavra(linha, 0);
 	if (primeiroToken.toLowerCase() != "algoritmo") {
 		console.error(`Linha ${indiceDela+1}: Comando fora da seção apropriada`);
 		return false;
@@ -235,16 +263,16 @@ const transpilaPrimeiraLinhaValida = (linha, indiceDela) => {
 	let charsAteAgora = primeiroToken.length;
 	charsAteAgora += contaEmBranco(linha, charsAteAgora);
 
-	const segundoToken = proxToken(linha, charsAteAgora);
+	const segundoToken = proxPalavra(linha, charsAteAgora);
 	if (!ehString(segundoToken)) {
 		console.error(`Linha ${indiceDela+1}: Sintaxe incorreta`);
 		return false;
 	}
 
-	programaTraduzido += "// programa " + segundoToken + "\n";
+	programaTraduzido += "// programa " + segundoToken + "\n\n";
 
 	charsAteAgora += segundoToken.length;
-	const terceiroToken = proxToken(linha, charsAteAgora);
+	const terceiroToken = proxPalavra(linha, charsAteAgora);
 	if (terceiroToken !== false) {
 		console.error(`Linha ${indiceDela+1}: Token nao identificado '${terceiroToken}'`);
 	}
@@ -268,7 +296,50 @@ const contaEmBranco = (linha, comeco) => {
 }
 
 /** @param {String} linha @param {Number} comeco @returns {String} */
-const proxToken = (linha, comeco) => {
+const proxTokenNaLinha = (linha, comeco) => {
+	const acabou = comeco == linha.length - 1;
+	if (acabou) return false;
+	
+	console.log(`TOKENIZAR '${linha.substring(comeco)}'`);
+	const primeiroChar = linha[comeco];
+	if (primeiroChar == "\"") {
+		return extraiString(linha, i);
+	}
+	
+	if (ehSimbolo(primeiroChar)) {
+		return primeiroChar;
+	}
+
+	let tokenAteAgora = "";
+	// let i;
+	for (let i = comeco; i < linha.length; ++i) {
+		const char = linha[i];
+		console.log(`char '${char}'`);
+		if (ehSkipavel(char)) {
+			// if (tokenAteAgora.length === 0) continue;
+			return tokenAteAgora;
+		}
+		
+		if (ehSimbolo(char)) {
+			console.log(`simbolo ${tokenAteAgora}`);
+			// if (tokenAteAgora.length === 0)
+			// 	return char;
+
+			return tokenAteAgora;
+		}
+		
+		tokenAteAgora += char;
+	}
+
+	return tokenAteAgora;
+
+	// const token = linha.substring(comeco, i);
+	// if (estaEmBrancoOuComentario(token)) return false;
+	// return token;
+}
+
+/** @param {String} linha @param {Number} comeco @returns {String} */
+const proxPalavra = (linha, comeco) => {
 	const acabou = comeco == linha.length - 1;
 	if (acabou) return false;
 	
@@ -302,6 +373,9 @@ const extraiString = (linha, comeco) => {
 
 const ehSkipavel = char => {
 	return char === ' ';
+}
+const ehSimbolo = char => {
+	return char === ':';
 }
 
 /**

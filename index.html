@@ -91,9 +91,12 @@ fiMALgoritmo
 		const editorContent = editor.getValue()
 		const savedContent = localStorage.getItem('content');
 		if (savedContent)
-			editor.setValue(savedContent)
-		
-		
+			editor.setValue(savedContent, 0)
+
+		// tive que hackear essa merda do código fonte deles pra parar de bugar o editor
+		// https://github.com/ajaxorg/ace/blob/v1.22.1/src/selection.js#L192
+		editor.selection.$setSelection(0, 0, 0, 0);
+
 	</script>
 
 	<!-- NOSSO SHCRIPT -->

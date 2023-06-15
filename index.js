@@ -101,6 +101,17 @@ const operadoresLogicos = [
 
 const variaveis = new Map();
 
+document.addEventListener("keydown", evt => {
+	if (evt.ctrlKey) {
+		if (evt.key == "F2") { 
+			processa();
+			document.getElementById("pythonTabButton").click();
+			return;
+		}
+		if (evt.key == "Shift") { console.clear(); return; }
+	} 
+});
+
 const processa = () => {
 	console.log("processando");
 	

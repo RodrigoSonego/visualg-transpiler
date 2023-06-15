@@ -89,7 +89,9 @@ fiMALgoritmo
 		
 
 		const editorContent = editor.getValue()
-		editor.setValue(localStorage.getItem('content'))
+		const savedContent = localStorage.getItem('content');
+		if (savedContent)
+			editor.setValue(savedContent)
 		
 		
 	</script>

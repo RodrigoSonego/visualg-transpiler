@@ -144,19 +144,19 @@ const traduzTokens = () => {
 	}
 	
 	const proxLinhaValida = skipaLinhasVazias(linhas, iPrimeiraLinhaValida+1);
-	console.log("prox linha valida: " + proxLinhaValida);
 	if (proxLinhaValida == linhas.length - 1) {
 		console.log("TA TUDO VAZIO PRA BAIXO DO NOME");
 		return;
 	}
 
 	const proxToken = tokenizaProx(linhas[proxLinhaValida]);
-	const isVarToken = proxToken[0].toLowerCase() == "var";
 
-	if (isVarToken) {
-		console.log("eh var")
-		varreVars(proxLinhaValida + 1, linhas);
+	const indexInicioAlg = varreVars(proxLinhaValida + 1, linhas);
+
+	for (const key of variaveis.keys()) {
+		console.log("varName: " + key + " initial value: " + variaveis.get(key))
 	}
+	
 
 	traduzAlgoritmo();
 }
@@ -200,7 +200,7 @@ const ehSkipavel = char => {
 const skipaLinhasVazias = (linhas, inicio) => {
 	for (let i = inicio; i < linhas.length; ++i) {
 		const linha = linhas[i];
-		if (estaEmBranco(linha) || linha.trim().startsWith("//")) continue;
+		if (estaEmBrancoOuComentario(linha) || linha.trim().startsWith("//")) continue;
 
 		return i;
 	}
@@ -208,19 +208,29 @@ const skipaLinhasVazias = (linhas, inicio) => {
 	return inicio;
 }
 
-const estaEmBranco = string => {
-	if (string == null) { return true; }
-
+const estaEmBrancoOuComentario = string => {
 	for (let i = 0; i < string.length; ++i) {
-		if (string[i] != ' ' || string[i] != "") return false;
+		const char = string[i];
+		if (char == "/") {
+			if (string[i+1] == "/")
+				return true;
+			return false;
+		}
+
+		if (char != " ") return false;
 	}
 	return true;
 }
 
+/**
+ * @param {number} startIndex 
+ * @param {number} linhas 
+ * @returns {Number|boolean} retorna index da proxima linha ou false se der erro
+ */
 const varreVars = (startIndex, linhas) => {
 	for (let i = startIndex; i < linhas.length; i++) {
-		if (linhas[i].toLowerCase() == "inicio") { return; }
-		if (linhas[i].trim().startsWith("//") || linhas[i].trim() == "") { continue; }
+		if (linhas[i].toLowerCase() == "inicio") { return i; }
+		if (estaEmBrancoOuComentario(linhas[i])) { continue; }
 
 		const tokens = linhas[i].split(":");
 		if (tokens.length != 2) {
@@ -230,12 +240,11 @@ const varreVars = (startIndex, linhas) => {
 		const varNames = tokens[0].trim().split(",");
 		const type = tokens[1].trim().toLowerCase();
 		
-		console.log("names: " + varNames + " type: " + type);
 		const conseguiuSalvar = salvaVars(varNames, type);
 		
 		if (conseguiuSalvar == false) {
 			alert("Erro de sintaxe na linha " + (i+1));
-			return;
+			return false;
 		}
 	}
 

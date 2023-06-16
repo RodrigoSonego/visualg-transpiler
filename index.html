@@ -69,13 +69,15 @@ fiMALgoritmo
 		</div>
 		<div id="js" class="tabcontent">
 			<button onclick="processaJs()">&nbsp&nbsp"Compila js"&nbsp&nbsp</button>
+			<span><br>Atalhos:<br><code>Ctrl+Enter</code> compilar (<code>+Shift</code> limpa o console)<br><code>Ctrl+Shift+;</code> resetar código</span>
 			<br> <br>
-			<input id="jsOutput" type="Text" class="inputContent" readonly></input>
+			<textarea id="jsOutput" type="Text" class="inputContent" readonly></textarea>
 		</div>
 		<div id="python" class="tabcontent">
 			<button onclick="processaPy()">&nbsp&nbsp"Compila python"&nbsp&nbsp</button>
+			<span><br>Atalhos:<br><code>Ctrl+F2</code> compilar (<code>+Shift</code> limpa o console)<br><code>Ctrl+Shift+;</code> resetar código</span>
 			<br> <br>
-			<input id="pythonOutput" class ="inputContent" type="Text" readonly></input>
+			<textarea id="pythonOutput" class ="inputContent" type="Text" readonly></textarea>
 		</div>
 	</div>
 
@@ -95,7 +97,26 @@ fiMALgoritmo
 
 		// tive que hackear essa merda do código fonte deles pra parar de bugar o editor
 		// https://github.com/ajaxorg/ace/blob/v1.22.1/src/selection.js#L192
-		editor.selection.$setSelection(0, 0, 0, 0);
+		const resetSelection = () => {
+			editor.selection.$setSelection(0, 0, 0, 0);
+		}
+
+		resetSelection();
+
+		document.addEventListener("keydown", evt => {
+
+			// console.log("pressed smth '" + evt.key + "' ct " +evt.ctrlKey + " sh " + evt.shiftKey);
+			if (evt.ctrlKey && evt.shiftKey && evt.key == ":") { 
+				evt.stopPropagation();
+				evt.preventDefault();
+
+				console.log("Código do editor reiniciado para o default");
+				editor.setValue(editorContent)
+				resetSelection();
+				return;
+			}
+		});
+		
 
 	</script>
 

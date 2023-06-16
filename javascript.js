@@ -100,12 +100,14 @@ const operadoresLogicos = [
 
 document.addEventListener("keydown", evt => {
 	if (evt.ctrlKey) {
+
 		if (evt.key == "Enter") { 
-			processa();
+			if (evt.shiftKey) console.clear();
 			document.getElementById("jsTabButton").click();
+			processa();
 			return;
 		}
-		if (evt.key == "Shift") { console.clear(); return; }
+		
 	} 
 });
 
@@ -116,36 +118,38 @@ document.addEventListener("keydown", evt => {
 
 
 let programaTraduzido = "";
-let osVar = new Map();
+const mapaDosVar = new Map();
 
 
 const processa = () => {
 	programaTraduzido = "";
-	osVar.clear();
+	mapaDosVar.clear();
 
 	traduzJavascript();
 }
 
 
-// qualquer caractere que sai do nosso "alfabeto" dá sintaxe incorreta
-// ex: '
-// só na string que vale tudo
+// TODO:
+// qualquer caractere que sai do nosso "alfabeto" dá sintaxe incorreta, ex: '
+// dentro da string é que nem amor e guerra, vale tudo
 const traduzJavascript = () => {
 	const textoDaIde = editor.getValue();
 
+	/** @type {Array.<string>} */
 	const linhas = textoDaIde.split("\n");
 
-	const iPrimeiraLinhaValida = contaLinhasVazias(linhas, 0);
-	const nenhumaLinhaValida = iPrimeiraLinhaValida == linhas.lengh - 1;
+	const iPrimeiraLinhaValida = pegaIndiceDaProximaLinhaNaoVazia(linhas, 0);
+	const nenhumaLinhaValida = iPrimeiraLinhaValida === linhas.length;
 	if (nenhumaLinhaValida) {
-		console.error("programa vazio");
+		console.error(`Linha 1: Sintaxe incorreta (programa vazio)`);
 		return;
 	}
 
 	// aqui sabemos que tem alguma linha válida
 	const primeiraLinha = linhas[iPrimeiraLinhaValida];
+	console.log(`primeira linha '${primeiraLinha}'`);
 	if (transpilaPrimeiraLinhaValida(primeiraLinha, iPrimeiraLinhaValida) === false) return;
-	let linhasPraSkippar = contaLinhasVazias(linhas, iPrimeiraLinhaValida+1);
+	let linhasPraSkippar = pegaIndiceDaProximaLinhaNaoVazia(linhas, iPrimeiraLinhaValida+1);
 	
 	const proxLinha = linhas[linhasPraSkippar];
 	if (transpilaSegundaLinhaValida(proxLinha, linhasPraSkippar) === false) return;
@@ -255,6 +259,7 @@ const transpilaPrimeiraLinhaValida = (linha, indiceDela) => {
 	linha = linha.substring(charsEmBranco);
 
 	const primeiroToken = proxPalavra(linha, 0);
+	console.assert(primeiroToken !== false)
 	if (primeiroToken.toLowerCase() != "algoritmo") {
 		console.error(`Linha ${indiceDela+1}: Comando fora da seção apropriada`);
 		return false;
@@ -340,7 +345,8 @@ const proxTokenNaLinha = (linha, comeco) => {
 
 /** @param {String} linha @param {Number} comeco @returns {String} */
 const proxPalavra = (linha, comeco) => {
-	const acabou = comeco == linha.length - 1;
+	// console.log(`catando prox palavra em '${linha}'`);
+	const acabou = comeco == linha.length;
 	if (acabou) return false;
 	
 	let i;
@@ -354,6 +360,7 @@ const proxPalavra = (linha, comeco) => {
 	}
 
 	const token = linha.substring(comeco, i);
+	// console.log(`token ${token}`);
 	if (estaEmBrancoOuComentario(token)) return false;
 	return token;
 }
@@ -381,22 +388,16 @@ const ehSimbolo = char => {
 /**
  * @return {Number}
  */
-const skipaLinhasVazias = linhas => {
-	for (let i = 0; i < linhas.length; ++i) {
+const pegaIndiceDaProximaLinhaNaoVazia = (linhas, comeco) => {
+	let i;
+	for (i = comeco; i < linhas.length; ++i) {
 		const linha = linhas[i];
 		if (estaEmBrancoOuComentario(linha)) continue;
 
 		return i;
 	}
-}
 
-const contaLinhasVazias = (linhas, comeco) => {
-	for (let i = comeco; i < linhas.length; ++i) {
-		const linha = linhas[i];
-		if (estaEmBrancoOuComentario(linha)) continue;
-
-		return i;
-	}
+	return i;
 }
 
 const estaEmBrancoOuComentario = string => {

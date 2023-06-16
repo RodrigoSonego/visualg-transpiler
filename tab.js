@@ -3,13 +3,12 @@ function openLP(evt, lpName) {
 
 		tabcontent = document.getElementsByClassName("tabcontent");
 		for (i = 0; i < tabcontent.length; i++) {
-				tabcontent[i].style.display = "none";
+			tabcontent[i].style.display = "none";
 		}
 
 		tablinks = document.getElementsByClassName("tablinks");
 		for (i = 0; i < tablinks.length; i++) {
-				tablinks[i].className = tablinks[i].className.replace(" active","");
-				console.log(tablinks[i].className);
+			tablinks[i].className = tablinks[i].className.replace(" active","");
 		}
 
 		document.getElementById(lpName).style.display = "block";

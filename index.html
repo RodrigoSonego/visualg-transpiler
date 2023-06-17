@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="index.css">
 <script src="tab.js"></script>
 <head>
+	<meta charset="UTF-8">
 	<title>Programa</title>
 	<style type="text/css" media="screen">
 		button {
@@ -102,6 +103,8 @@ fiMALgoritmo
 		}
 
 		resetSelection();
+		document.getElementById("jsOutput").value = "";
+		document.getElementById("pythonOutput").value = "";
 
 		document.addEventListener("keydown", evt => {
 

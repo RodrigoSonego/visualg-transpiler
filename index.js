@@ -99,6 +99,16 @@ const operadoresLogicos = [
 	"xou",
 ]
 
+const funcoes = [
+	"escreva",
+	"escreval"
+]
+
+const atribuicoes = [
+	":=",
+	"<-"
+]
+
 const variaveis = new Map();
 let codigoTraduzido = "";
 document.addEventListener("keydown", evt => {
@@ -314,7 +324,12 @@ const transpilaAlgoritmo = (linhas, indexInicio) => {
 			return;
 		}
 
-		console.log(primeiroToken);
+		let charsAteAgora = primeiroToken.length;
+		charsAteAgora += contaEmBranco(linha, charsAteAgora);
+
+		const segundoToken = extraiSimbolo(linha, charsAteAgora);
+
+		console.log(`primeiro token: ${primeiroToken}, segundo token: ${segundoToken}`)
 		if (i === linhas.length - 1 && primeiroToken.toLowerCase() !== "fimalgoritmo") {
 			naoEsperado(i, 0, 0);
 			alert("ERRO: esperava encontrar 'fimalgoritmo'")
@@ -337,6 +352,12 @@ const proxPalavra = (linha, comeco) => {
 		}
 
 		if (ehSkipavel(char)) break;
+
+		
+		if(ehSimbolo(char)) {
+			// console.log(`achei simbolo na linha ${linha}, que começa em ${comeco}`);
+			break;
+		}
 	}
 
 	const token = linha.substring(comeco, i);
@@ -365,6 +386,39 @@ const contaEmBranco = (linha, comeco) => {
 		return i - comeco;
 	}
 	return i - comeco;
+}
+
+/**
+ * 
+ * @param {String} char 
+ * @returns {boolean}
+ */
+const ehSimbolo = char => {
+	const charCode = char.toLowerCase().charCodeAt(0)
+
+	const ehLetra = charCode >= 97 && charCode <= 122;
+	const ehUnderline = charCode == 95;
+	const ehNumero = charCode >= 48 && charCode <= 57;
+	// console.log(`char ${char}, code: ${charCode}, é letra? ${ehLetra}, é underline? ${ehUnderline}`)
+
+	const ehDoAlfabeto = ehLetra || ehUnderline || ehNumero;
+	return ehDoAlfabeto == false;
+}
+
+const extraiSimbolo = (linha, comeco) => {
+		// console.log(`extraindo string de ${linha.substring(comeco)}`);
+	let i;
+	for (i = comeco + 1; i < linha.length; ++i) {
+		const char = linha[i];
+
+		if (ehSimbolo(char) == false) {
+			// console.log(`simbolo extraído: ${linha.substring(comeco, i)}`);
+			return linha.substring(comeco, i);
+		}
+	}
+	
+	return false;
+	// erro, não tem char
 }
 
 const naoEsperado = (indiceLinha, indiceColuna, tamanhoToken) => {

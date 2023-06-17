@@ -100,7 +100,7 @@ const operadoresLogicos = [
 ]
 
 const variaveis = new Map();
-
+let codigoTraduzido = "";
 document.addEventListener("keydown", evt => {
 	if (evt.ctrlKey) {
 		if (evt.key == "F2") { 
@@ -115,6 +115,10 @@ document.addEventListener("keydown", evt => {
 const processa = () => {
 	console.log("processando");
 	
+	variaveis.clear();
+	codigoTraduzido = "";
+	document.getElementById("pythonOutput").value = "";
+
 	traduzTokens();
 }
 
@@ -126,11 +130,38 @@ const traduzTokens = () => {
 
 	const linhas = textoDaIde.split("\n");
 
+	const iPrimeiraLinhaValida = transpilaPrimeiraLinhaValida(linhas);
+	
+	if (iPrimeiraLinhaValida == false) { return; }
+
+	const proxLinhaValida = skipaLinhasVazias(linhas, iPrimeiraLinhaValida+1);
+	if (proxLinhaValida == linhas.length - 1) {
+		console.error("TA TUDO VAZIO PRA BAIXO DO NOME");
+		return;
+	}
+
+	const indexInicioAlg = transpilaVars(proxLinhaValida + 1, linhas);
+
+	for (const key of variaveis.keys()) {
+		console.log("varName: " + key + " initial value: " + variaveis.get(key))
+	}
+	
+
+	traduzAlgoritmo();
+
+	document.getElementById("pythonOutput").value = codigoTraduzido;
+}
+
+/**
+ * @param {String[]} linhas 
+ * @returns {Number|boolean} Index da primeira linha válida ou false se der erro
+ */
+const transpilaPrimeiraLinhaValida = (linhas) => {
 	const iPrimeiraLinhaValida = skipaLinhasVazias(linhas, 0);
 	const nenhumaLinhaValida = iPrimeiraLinhaValida == linhas.length - 1 || linhas.length == 0;
 	if (nenhumaLinhaValida) {
 		console.log("TA TUDO VAZIO");
-		return;
+		return false;
 	}
 
 	const primeiraLinha = linhas[iPrimeiraLinhaValida];
@@ -139,28 +170,14 @@ const traduzTokens = () => {
 	console.log(primeirosTokens);
 
 	if (primeirosTokens[0] != "Algoritmo" || primeirosTokens[1].startsWith("\"") == false || primeirosTokens.length != 2 ) {
-		console.log("ERRO: Esperava-se 'Algoritmo' seguido de uma string");
-		return;
-	}
-	
-	const proxLinhaValida = skipaLinhasVazias(linhas, iPrimeiraLinhaValida+1);
-	if (proxLinhaValida == linhas.length - 1) {
-		console.log("TA TUDO VAZIO PRA BAIXO DO NOME");
-		return;
+		console.error("ERRO: Esperava-se 'Algoritmo' seguido de uma string");
+		return false;
 	}
 
-	const proxToken = tokenizaProx(linhas[proxLinhaValida]);
+	codigoTraduzido += "# programa " + primeirosTokens[1] + "\n\n";
 
-	const indexInicioAlg = varreVars(proxLinhaValida + 1, linhas);
-
-	for (const key of variaveis.keys()) {
-		console.log("varName: " + key + " initial value: " + variaveis.get(key))
-	}
-	
-
-	traduzAlgoritmo();
+	return true;
 }
-
 
 const tokenizaProx = string => {
 	const tokens = [];
@@ -227,6 +244,23 @@ const estaEmBrancoOuComentario = string => {
  * @param {number} linhas 
  * @returns {Number|boolean} retorna index da proxima linha ou false se der erro
  */
+const transpilaVars = (startIndex, linhas) => {
+	const indexInicio = varreVars(startIndex, linhas);
+
+	if(indexInicio == false) {
+		return false;
+	}
+
+	traduzVars();
+
+	return indexInicio;
+}
+
+/**
+ * @param {number} startIndex 
+ * @param {number} linhas 
+ * @returns {Number|boolean} retorna index da proxima linha ou false se der erro
+ */
 const varreVars = (startIndex, linhas) => {
 	for (let i = startIndex; i < linhas.length; i++) {
 		if (linhas[i].toLowerCase() == "inicio") { return i; }
@@ -247,20 +281,21 @@ const varreVars = (startIndex, linhas) => {
 			return false;
 		}
 	}
-
 }
 
 /** @param {String} varName @param {String} varType @returns {Boolean} */
 const salvaVars = (varNames, varType) => {
 	for (const varName of varNames) {
+		const trimmedName = varName.trim();
+
 		if (varType == "inteiro" || varType == "real") {
-			variaveis.set(varName, 0);
+			variaveis.set(trimmedName, 0);
 		}
 		else if (varType == "caracter" || varType == "caractere") {
-			variaveis.set(varName, "");
+			variaveis.set(trimmedName, "\"\"");
 		}
 		else if (varType == "logico") {
-			variaveis.set(varName, false);
+			variaveis.set(trimmedName, false);
 		}
 		else {
 			return false;
@@ -268,6 +303,12 @@ const salvaVars = (varNames, varType) => {
 	}
 
 	return true;
+}
+
+const traduzVars = () => {
+	for (const varName of variaveis.keys()) {
+		codigoTraduzido += `${varName} = ${variaveis.get(varName)}\n`
+	}
 }
 
 const traduzAlgoritmo = () => {

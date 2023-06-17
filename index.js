@@ -167,14 +167,18 @@ const transpilaPrimeiraLinhaValida = (linhas) => {
 	const primeiraLinha = linhas[iPrimeiraLinhaValida];
 
 	const primeiroToken = proxPalavra(primeiraLinha, 0);
-	
+	if(primeiroToken === false || primeiroToken.toLowerCase() != "algoritmo") {
+		naoEsperado(iPrimeiraLinhaValida, 0, primeiraLinha.length);
+	}
+
 	let charsPercorridos = primeiroToken.length;
 	charsPercorridos += contaEmBranco(primeiraLinha, charsPercorridos);
 	
 	const segundoToken = proxPalavra(primeiraLinha, charsPercorridos);
 
-	if (primeiroToken != "Algoritmo" || segundoToken.startsWith("\"") == false) {
-	 	console.error("ERRO: Esperava-se 'Algoritmo' seguido de uma string");
+	if (segundoToken === false || segundoToken.startsWith("\"") == false) {
+	 	alert("ERRO: Esperava-se 'Algoritmo' seguido de uma string");
+		naoEsperado(iPrimeiraLinhaValida, 0, primeiraLinha.length);
 	 	return false;
 	}
 
@@ -244,7 +248,7 @@ const varreVars = (startIndex, linhas) => {
 
 		const tokens = linhas[i].split(":");
 		if (tokens.length != 2) {
-			alert("Erro de sintaxe na linha " + (i+1));
+			naoEsperado(i, 0, linhas[i].length);
 		}
 
 		const varNames = tokens[0].trim().split(",");
@@ -253,7 +257,7 @@ const varreVars = (startIndex, linhas) => {
 		const conseguiuSalvar = salvaVars(varNames, type);
 		
 		if (conseguiuSalvar == false) {
-			alert("Erro de sintaxe na linha " + (i+1));
+			naoEsperado(i, 0, linhas[i].length);
 			return false;
 		}
 	}
@@ -329,6 +333,17 @@ const contaEmBranco = (linha, comeco) => {
 		return i - comeco;
 	}
 	return i - comeco;
+}
+
+const naoEsperado = (indiceLinha, indiceColuna, tamanhoToken) => {
+    console.error(`token nao esperado na linha '${indiceLinha+1}' coluna '${indiceColuna}'`);
+    atualizaCursorNoErro(indiceLinha, indiceColuna, tamanhoToken);
+}
+
+const atualizaCursorNoErro = (indiceLinha, indiceColuna, tamanhoToken) => {
+    if (!tamanhoToken) tamanhoToken = 0;
+    if (!indiceColuna) indiceColuna = 0;
+    editor.selection.$setSelection(indiceLinha, indiceColuna, indiceLinha, indiceColuna + tamanhoToken);
 }
 
 const traduzAlgoritmo = () => {

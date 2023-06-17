@@ -165,46 +165,22 @@ const transpilaPrimeiraLinhaValida = (linhas) => {
 	}
 
 	const primeiraLinha = linhas[iPrimeiraLinhaValida];
-	const primeirosTokens = tokenizaProx(primeiraLinha);
-	
-	console.log(primeirosTokens);
 
-	if (primeirosTokens[0] != "Algoritmo" || primeirosTokens[1].startsWith("\"") == false || primeirosTokens.length != 2 ) {
-		console.error("ERRO: Esperava-se 'Algoritmo' seguido de uma string");
-		return false;
+	const primeiroToken = proxPalavra(primeiraLinha, 0);
+	
+	let charsPercorridos = primeiroToken.length;
+	charsPercorridos += contaEmBranco(primeiraLinha, charsPercorridos);
+	
+	const segundoToken = proxPalavra(primeiraLinha, charsPercorridos);
+
+	if (primeiroToken != "Algoritmo" || segundoToken.startsWith("\"") == false) {
+	 	console.error("ERRO: Esperava-se 'Algoritmo' seguido de uma string");
+	 	return false;
 	}
 
-	codigoTraduzido += "# programa " + primeirosTokens[1] + "\n\n";
+	codigoTraduzido += "# programa " + segundoToken + "\n\n";
 
 	return true;
-}
-
-const tokenizaProx = string => {
-	const tokens = [];
-
-	for (let i = 0; i < string.length; ++i) {
-		const char = string[i];
-		if (ehSkipavel(char)) continue;
-
-		const tamanhoDoToken = extraiTamanhoToken(string, i);
-		const token = string.substring(i, tamanhoDoToken);
-		i += token.length;
-		// console.log(`skiparei em '${token.length}'`);
-		tokens.push(token);
-	}
-
-	return tokens;
-}
-
-const extraiTamanhoToken = (string, comeco) => {
-	// console.log(`extraindo a partir de ${comeco} ou '${string[comeco]}'`);
-	let i;
-	for (i = comeco; i < string.length; ++i) {
-		const char = string[i];
-		// TODO: tem tokens que nao necessitam que tenha caracteres "skipáveis" entre eles
-		if (char == " ") return i;
-	}
-	return i;
 }
 
 const ehSkipavel = char => {
@@ -309,6 +285,50 @@ const traduzVars = () => {
 	for (const varName of variaveis.keys()) {
 		codigoTraduzido += `${varName} = ${variaveis.get(varName)}\n`
 	}
+}
+
+/** @param {String} linha @param {Number} comeco @returns {String} */
+const proxPalavra = (linha, comeco) => {
+	// console.log(`catando prox palavra em '${linha}'`);
+	const acabou = comeco == linha.length;
+	if (acabou) return false;
+	
+	let i;
+	for (i = comeco; i < linha.length; ++i) {
+		const char = linha[i];
+		if (char == "\"") {
+			return extraiString(linha, i);
+		}
+
+		if (ehSkipavel(char)) break;
+	}
+
+	const token = linha.substring(comeco, i);
+	// console.log(`token ${token}`);
+	if (estaEmBrancoOuComentario(token)) return false;
+	return token;
+}
+
+const extraiString = (linha, comeco) => {
+	// console.log(`extraindo string de ${linha.substring(comeco)}`);
+	let i;
+	for (i = comeco + 1; i < linha.length; ++i) {
+		const char = linha[i];
+		if (char == "\"") return linha.substring(comeco, i+1);
+	}
+	
+	return false;
+	// erro, string nao fechada
+}
+
+const contaEmBranco = (linha, comeco) => {
+	let i;
+	for (i = comeco; i < linha.length; ++i) {
+		const char = linha[i];
+		if (ehSkipavel(char)) continue;
+		return i - comeco;
+	}
+	return i - comeco;
 }
 
 const traduzAlgoritmo = () => {

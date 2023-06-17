@@ -142,12 +142,12 @@ const traduzTokens = () => {
 
 	const indexInicioAlg = transpilaVars(proxLinhaValida + 1, linhas);
 
-	for (const key of variaveis.keys()) {
-		console.log("varName: " + key + " initial value: " + variaveis.get(key))
-	}
+	if (indexInicioAlg === false) { return; }
+	// for (const key of variaveis.keys()) {
+	// 	console.log("varName: " + key + " initial value: " + variaveis.get(key))
+	// }
 	
-
-	traduzAlgoritmo();
+	transpilaAlgoritmo(linhas, indexInicioAlg + 1);
 
 	document.getElementById("pythonOutput").value = codigoTraduzido;
 }
@@ -291,6 +291,38 @@ const traduzVars = () => {
 	}
 }
 
+/**
+ * 
+ * @param {String[]} linhas 
+ * @param {number} indexInicio 
+ */
+const transpilaAlgoritmo = (linhas, indexInicio) => {
+	if (indexInicio >= linhas.length) {
+		naoEsperado(linhas.length - 1, 0);
+		alert("ERRO: nada após inicio")
+	}
+
+	for (let i = indexInicio; i < linhas.length; ++i) {
+		const linha = linhas[i];
+		if (estaEmBrancoOuComentario(linha)) { continue; }
+		
+
+		//TODO: ver uma maneira de pegar o primeiro token se for uma funcao
+		const primeiroToken = proxPalavra(linha, 0);
+		if (primeiroToken === false) {
+			naoEsperado(i, 0, 0);
+			return;
+		}
+
+		console.log(primeiroToken);
+		if (i === linhas.length - 1 && primeiroToken.toLowerCase() !== "fimalgoritmo") {
+			naoEsperado(i, 0, 0);
+			alert("ERRO: esperava encontrar 'fimalgoritmo'")
+		}
+	}
+}
+
+
 /** @param {String} linha @param {Number} comeco @returns {String} */
 const proxPalavra = (linha, comeco) => {
 	// console.log(`catando prox palavra em '${linha}'`);
@@ -344,10 +376,6 @@ const atualizaCursorNoErro = (indiceLinha, indiceColuna, tamanhoToken) => {
     if (!tamanhoToken) tamanhoToken = 0;
     if (!indiceColuna) indiceColuna = 0;
     editor.selection.$setSelection(indiceLinha, indiceColuna, indiceLinha, indiceColuna + tamanhoToken);
-}
-
-const traduzAlgoritmo = () => {
-	//TODO: vai tokenizando e traduzindo algoritmo
 }
 
 

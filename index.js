@@ -335,6 +335,8 @@ const transpilaAlgoritmo = (linhas, indexInicio) => {
 		alert("ERRO: nada após inicio")
 	}
 
+	let fimseFaltando = 0;
+
 	for (let i = indexInicio; i < linhas.length; ++i) {
 		const linha = linhas[i];
 		if (estaEmBrancoOuComentario(linha)) { continue; }
@@ -356,8 +358,28 @@ const transpilaAlgoritmo = (linhas, indexInicio) => {
 			return;
 		}
 
+		
 		if(primeiroToken.toLowerCase() === "fimalgoritmo") {
+			if(fimseFaltando != 0) {
+				naoEsperado(i, 0, 0);
+				alert("ERRO: esperava encontrar 'fimse'");
+			}
+
 			return;
+		}
+		
+		if(primeiroToken.toLowerCase() == "se") {
+			fimseFaltando++;
+		}
+
+		if(primeiroToken.toLowerCase() == "fimse") {
+			if(fimseFaltando == 0) {
+				naoEsperado(i, contaEmBranco(linha, 0), primeiroToken.length)
+				alert("ERRO: 'fimse' encontrado sem 'se' correspondente");
+				return;
+			}
+
+			fimseFaltando--;
 		}
 
 		const segundoToken = extraiSimbolo(linha, charsAteAgora);
@@ -542,32 +564,32 @@ const extraiCondicaoSe = (linha) => {
 	return false;
 }
 
-// const temFimSe = (linhas, comeco) => {
-// 	let ignoreFimCounter = 0;
+const temFimSe = (linhas, comeco) => {
+	let ignoreFimCounter = 0;
 
-// 	for (let i = comeco; i < linhas.length; i++) {
-// 		const primeiroToken = proxPalavra(linhas[i].trim(), 0);
+	for (let i = comeco; i < linhas.length; i++) {
+		const primeiroToken = proxPalavra(linhas[i].trim(), 0);
 
-// 		if (primeiroToken === "se") {
-// 			ignoreFimCounter++;
-// 			console.log(`achou outro se na linha ${i}, vai ignorar ${ignoreFimCounter} fimses`);
-// 			continue;
-// 		}
+		if (primeiroToken === "se") {
+			ignoreFimCounter++;
+			console.log(`achou outro se na linha ${i}, vai ignorar ${ignoreFimCounter} fimses`);
+			continue;
+		}
 
 
-// 		if (primeiroToken === "fimse") {
-// 			if(ignoreFimCounter > 0) {
-// 				ignoreFimCounter--;
-// 				console.log(`achou um fimse na linha ${i}, vai ignorar ${ignoreFimCounter} fimses`);
-// 				continue;
-// 			}
+		if (primeiroToken === "fimse") {
+			if(ignoreFimCounter > 0) {
+				ignoreFimCounter--;
+				console.log(`achou um fimse na linha ${i}, vai ignorar ${ignoreFimCounter} fimses`);
+				continue;
+			}
 
-// 			console.log(`achou o fim do se da linha ${comeco} na linha ${i}`);
-// 			return true;
-// 		}
-// 	}
-// 	return false;
-// }
+			console.log(`achou o fim do se da linha ${comeco} na linha ${i}`);
+			return true;
+		}
+	}
+	return false;
+}
 
 const insertTabs = () => {
 	for (let i = 0; i < tabDepth; i++) {

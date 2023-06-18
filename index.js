@@ -145,14 +145,32 @@ const traduzTokens = () => {
 	if (iPrimeiraLinhaValida == false) { return; }
 
 	const proxLinhaValida = skipaLinhasVazias(linhas, iPrimeiraLinhaValida+1);
-	if (proxLinhaValida == linhas.length - 1) {
-		console.error("TA TUDO VAZIO PRA BAIXO DO NOME");
+	// if (proxLinhaValida == linhas.length - 1) {
+	// 	console.error("TA TUDO VAZIO PRA BAIXO DO NOME");
+	// 	return;
+	// }
+
+	const proximoToken = proxPalavra(linhas[proxLinhaValida], 0);
+	if(proximoToken === false) {
+		naoEsperado(proxLinhaValida, 0, 0);
 		return;
 	}
 
-	const indexInicioAlg = transpilaVars(proxLinhaValida + 1, linhas);
+	let indexInicioAlg = -1;
+	if (proximoToken.toLowerCase() === "var") {
+		indexInicioAlg = transpilaVars(proxLinhaValida + 1, linhas);
+		if (indexInicioAlg === false) { return; }
+	}
+	else if (proximoToken.toLowerCase() === "inicio") {
+		indexInicioAlg = proxLinhaValida;
+	}
+	else {
+		naoEsperado(proxLinhaValida, 0, 0);
+		alert("Esperava encontrar 'Inicio'");
+		return;
+	}
 
-	if (indexInicioAlg === false) { return; }
+
 	// for (const key of variaveis.keys()) {
 	// 	console.log("varName: " + key + " initial value: " + variaveis.get(key))
 	// }
@@ -327,18 +345,29 @@ const transpilaAlgoritmo = (linhas, indexInicio) => {
 		let charsAteAgora = primeiroToken.length;
 		charsAteAgora += contaEmBranco(linha, charsAteAgora);
 
-		const segundoToken = extraiSimbolo(linha, charsAteAgora);
-
-		console.log(`primeiro token: ${primeiroToken}, segundo token: ${segundoToken}`)
 		if (i === linhas.length - 1 && primeiroToken.toLowerCase() !== "fimalgoritmo") {
 			naoEsperado(i, 0, 0);
-			alert("ERRO: esperava encontrar 'fimalgoritmo'")
+			alert("ERRO: esperava encontrar 'fimalgoritmo'");
+			return;
 		}
+
+		if(primeiroToken.toLowerCase() === "fimalgoritmo") {
+			return;
+		}
+
+		const segundoToken = extraiSimbolo(linha, charsAteAgora);
+		if(segundoToken === false) {
+			naoEsperado(i, charsAteAgora, 0);
+			return;
+		}
+
+		charsAteAgora += segundoToken.length;
+		traduzLinhaAlgoritmo(primeiroToken, segundoToken, linha, charsAteAgora)
 	}
 }
 
 
-/** @param {String} linha @param {Number} comeco @returns {String} */
+/** @param {String} linha @param {Number} comeco @returns {String|boolean} */
 const proxPalavra = (linha, comeco) => {
 	// console.log(`catando prox palavra em '${linha}'`);
 	const acabou = comeco == linha.length;
@@ -405,20 +434,67 @@ const ehSimbolo = char => {
 	return ehDoAlfabeto == false;
 }
 
+
+/** @param {String} linha @param {number} comeco @returns {String | boolean} */
 const extraiSimbolo = (linha, comeco) => {
 		// console.log(`extraindo string de ${linha.substring(comeco)}`);
 	let i;
-	for (i = comeco + 1; i < linha.length; ++i) {
+	for (i = comeco; i < linha.length; ++i) {
 		const char = linha[i];
+		if (char === "(") {
+			return extraiParenteses(linha, i);
+		}
 
-		if (ehSimbolo(char) == false) {
+		if (ehSimbolo(char) == false || ehSkipavel(char)) {
 			// console.log(`simbolo extraído: ${linha.substring(comeco, i)}`);
 			return linha.substring(comeco, i);
 		}
+
 	}
 	
 	return false;
 	// erro, não tem char
+}
+
+/** @param {String} linha  @param {number} comeco @returns {String|boolean} */
+const extraiParenteses = (linha, comeco) => {
+		// console.log(`extraindo string de ${linha.substring(comeco)}`);
+		let i;
+		for (i = comeco + 1; i < linha.length; ++i) {
+			const char = linha[i];
+			if (char == "\)") return linha.substring(comeco, i+1);
+		}
+		
+		return false;
+		// erro, parenteses nao fechados
+}
+
+/**
+ * 
+ * @param {String} primeiroToken 
+ * @param {String} segundoToken 
+ * @param {String} linha 
+ * @param {number} charsAteAgora 
+ */
+const traduzLinhaAlgoritmo = (primeiroToken, segundoToken, linha, charsAteAgora) => {
+	// console.log(`1st token: ${primeiroToken}  2nd token: ${segundoToken},  linha: ${linha}, chars: ${charsAteAgora}`)
+	if (atribuicoes.includes(segundoToken)) {
+		for (const varName of variaveis.keys()) {
+			if(varName !== primeiroToken) { continue; }
+
+			console.log("atribuicao: " + linha.substring(charsAteAgora))
+			codigoTraduzido += `${varName} = ${linha.substring(charsAteAgora).trim()}\n`;
+			return true;
+		}
+
+		return false;
+	}
+
+	if (funcoes.includes(primeiroToken)) {
+		if(primeiroToken === "escreva" || primeiroToken === "escreval") {
+			codigoTraduzido += `print${segundoToken}\n`;
+		}
+	}
 }
 
 const naoEsperado = (indiceLinha, indiceColuna, tamanhoToken) => {

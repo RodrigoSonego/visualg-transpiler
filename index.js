@@ -111,6 +111,9 @@ const atribuicoes = [
 
 const variaveis = new Map();
 let codigoTraduzido = "";
+let tabDepth = 0;
+
+
 document.addEventListener("keydown", evt => {
 	if (evt.ctrlKey) {
 		if (evt.key == "F2") { 
@@ -127,6 +130,8 @@ const processa = () => {
 	
 	variaveis.clear();
 	codigoTraduzido = "";
+	tabDepth = 0;
+
 	document.getElementById("pythonOutput").value = "";
 
 	traduzTokens();
@@ -356,10 +361,12 @@ const transpilaAlgoritmo = (linhas, indexInicio) => {
 		}
 
 		const segundoToken = extraiSimbolo(linha, charsAteAgora);
-		if(segundoToken === false) {
-			naoEsperado(i, charsAteAgora, 0);
-			return;
-		}
+		// if(segundoToken === false) {
+		// 	naoEsperado(i, charsAteAgora, 0);
+		// 	return;
+		// }
+
+		// temFimSe(linhas, i);
 
 		charsAteAgora += segundoToken.length;
 		traduzLinhaAlgoritmo(primeiroToken, segundoToken, linha, charsAteAgora)
@@ -483,6 +490,7 @@ const traduzLinhaAlgoritmo = (primeiroToken, segundoToken, linha, charsAteAgora)
 			if(varName !== primeiroToken) { continue; }
 
 			console.log("atribuicao: " + linha.substring(charsAteAgora))
+			insertTabs();
 			codigoTraduzido += `${varName} = ${linha.substring(charsAteAgora).trim()}\n`;
 			return true;
 		}
@@ -492,8 +500,78 @@ const traduzLinhaAlgoritmo = (primeiroToken, segundoToken, linha, charsAteAgora)
 
 	if (funcoes.includes(primeiroToken)) {
 		if(primeiroToken === "escreva" || primeiroToken === "escreval") {
+			insertTabs();
 			codigoTraduzido += `print${segundoToken}\n`;
+			return true;
 		}
+
+		return false;
+	}
+
+	if(primeiroToken == "se") {
+		const condicao = extraiCondicaoSe(linha);
+		if(condicao === false) {
+			return false;
+		}
+
+		insertTabs();
+		codigoTraduzido += `if (${condicao}):\n`;
+
+		tabDepth++;
+		console.log("achou se, nova tabDepth: " + tabDepth);
+		return true;
+	}
+
+	if(primeiroToken == "fimse") {
+		--tabDepth;
+		console.log("achou fimse, nova tabDepth: " + tabDepth);
+	}
+}
+
+const extraiCondicaoSe = (linha) => {
+	const linhaSemEspaco = linha.trim();
+
+	if (linhaSemEspaco.endsWith("entao")) {
+		return linhaSemEspaco.substring(2, linha.length - 5).trim();
+	}
+	else {
+		naoEsperado(linha, linha.length - 5, 0);
+		alert("ERRO: Esperava 'entao'");
+	}
+
+	return false;
+}
+
+// const temFimSe = (linhas, comeco) => {
+// 	let ignoreFimCounter = 0;
+
+// 	for (let i = comeco; i < linhas.length; i++) {
+// 		const primeiroToken = proxPalavra(linhas[i].trim(), 0);
+
+// 		if (primeiroToken === "se") {
+// 			ignoreFimCounter++;
+// 			console.log(`achou outro se na linha ${i}, vai ignorar ${ignoreFimCounter} fimses`);
+// 			continue;
+// 		}
+
+
+// 		if (primeiroToken === "fimse") {
+// 			if(ignoreFimCounter > 0) {
+// 				ignoreFimCounter--;
+// 				console.log(`achou um fimse na linha ${i}, vai ignorar ${ignoreFimCounter} fimses`);
+// 				continue;
+// 			}
+
+// 			console.log(`achou o fim do se da linha ${comeco} na linha ${i}`);
+// 			return true;
+// 		}
+// 	}
+// 	return false;
+// }
+
+const insertTabs = () => {
+	for (let i = 0; i < tabDepth; i++) {
+		codigoTraduzido += "\t";
 	}
 }
 

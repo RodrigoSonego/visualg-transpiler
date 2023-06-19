@@ -1,103 +1,5 @@
 const processaJs =(function() {
 
-const tabelitaEl   = document.getElementById("table");
-
-// TODO: até, então, faça, fimfunção, função, não, senão
-
-// fonte: https://visualg3.com.br/tabelas/
-const palavrasReservadas = [
-	"aleatorio",
-	"algoritmo",
-	"arquivo",
-	"asc",
-	"ate",
-	"carac",
-	"caracpnum",
-	"caracter",
-	"caractere",
-	"caso",
-	"compr",
-	"copia",
-	"cronometro",
-	"debug",
-	"div",
-	"e",
-	"eco",
-	"enquanto",
-	"entao",
-	"escolha",
-	"escreva",
-	"escreval",
-	"faca",
-	"falso",
-	"fimalgoritmo",
-	"fimenquanto",
-	"fimescolha",
-	"fimfuncao",
-	"fimpara",
-	"fimprocedimento",
-	"fimrepita",
-	"fimse",
-	"funcao",
-	"inicio",
-	"int",
-	"inteiro",
-	"interrompa",
-	"leia",
-	"limpatela",
-	"logico",
-	"maiusc",
-	"minusc",
-	"mod",
-	"mudacor",
-	"nao",
-	"numpcarac",
-	"ou",
-	"outrocaso",
-	"para",
-	"passo",
-	"pausa",
-	"pos",
-	"procedimento",
-	"real",
-	"repita",
-	"retorne",
-	"se",
-	"senao",
-	"timer",
-	"var",
-	"verdadeiro",
-	"vetor",
-	"xou",
-]
-
-const operadoresAritimeticos = [
-	"^",
-	"*",
-	"/",
-	"\\",
-	"+",
-	"-",
-	"*",
-]
-
-const operadoresRelacionais = [
-	">",
-	"<",
-	"=",
-	">=",
-	"<=",
-	"<>",
-]
-
-const operadoresLogicos = [
-	"nao",
-	"ou",
-	"e",
-	"xou",
-]
-
-
 document.addEventListener("keydown", evt => {
 	if (evt.ctrlKey) {
 
@@ -105,25 +7,27 @@ document.addEventListener("keydown", evt => {
 			if (evt.shiftKey) console.clear();
 			document.getElementById("jsTabButton").click();
 			processa();
+
+			if (evt.altKey) {
+				console.log("RODANDO PROGRAMA:");
+				eval(programaTraduzido)
+			}
 			return;
 		}
-		
+
 	} 
 });
 
 
 const valoresDefaultPorTipo = new Map();
+valoresDefaultPorTipo.set("inteiro",  '0');
+valoresDefaultPorTipo.set("real",     '0.0');
+valoresDefaultPorTipo.set("caracter", '""');
+valoresDefaultPorTipo.set("caractere",'""');
+valoresDefaultPorTipo.set("logico",   'false');
+valoresDefaultPorTipo.set("vetor",    '0;');
 
-valoresDefaultPorTipo.set("inteiro",  "0");
-valoresDefaultPorTipo.set("real",     "0.0");
-valoresDefaultPorTipo.set("caracter", "\"\"");
-valoresDefaultPorTipo.set("caractere","\"\"");
-valoresDefaultPorTipo.set("logico",   "false");
-valoresDefaultPorTipo.set("vetor",    "0; // TODO! inicializaVetor()");
-
-const reconheceTipoDeDados = tipo => {
-	return valoresDefaultPorTipo.has(tipo)
-}
+const reconheceTipoDeDados = tipo => valoresDefaultPorTipo.has(tipo)
 
 const defaultDoTipo = (tipo, num) => {
 	const valorDefault = valoresDefaultPorTipo.get(tipo);
@@ -136,14 +40,64 @@ const defaultDoTipo = (tipo, num) => {
 	return str;
 }
 
+
+const simbolos = new Set();
+simbolos.add(":")
+simbolos.add(",")
+simbolos.add(")")
+simbolos.add("(")
+simbolos.add("<")
+simbolos.add(">")
+simbolos.add("-")
+simbolos.add("=")
+// visualg nao tem esses
+// simbolos.add("&")
+// simbolos.add("|")
+
+const ehSimbolo = char => simbolos.has(char);
+
+
+
+const reservadas = new Set();
+reservadas.add("se")
+reservadas.add("entao")
+reservadas.add("senao")
+reservadas.add("fimse")
+
+reservadas.add("para")
+reservadas.add("de")
+reservadas.add("ate")
+reservadas.add("passo")
+reservadas.add("faca")
+reservadas.add("fimpara")
+reservadas.add("enquanto")
+reservadas.add("fimenquanto")
+
+// reservadas.add("repita")
+// reservadas.add("fimrepita")
+
+// const reservadas = new Map();
+// reservadas.set("se",          "if");
+// reservadas.set("entao",       "");
+// reservadas.set("senao",       "else");
+// reservadas.set("fimse",       "");
+// reservadas.set("enquanto",    "while");
+// reservadas.set("fimenquanto", "");
+// reservadas.set("repita",      "do");
+// reservadas.set("ate",         "while");
+// reservadas.set("fimrepita",   "");
+
+
+const ehReservada = char => reservadas.has(char);
+
+
+
+const jsOutput = document.getElementById("jsOutput");
 let programaTraduzido = "";
-// const mapaDosVar = new Map();
 
 
 const processa = () => {
 	programaTraduzido = "";
-	// mapaDosVar.clear();
-
 	traduzJavascript();
 }
 
@@ -169,32 +123,230 @@ const traduzJavascript = () => {
 	let comecoDaProximaLinhaBoa = 0;
 	comecoDaProximaLinhaBoa = pegaIndiceDaProximaLinhaNaoVazia(linhas, iPrimeiraLinhaValida + 1);
 	if (comecoDaProximaLinhaBoa === linhas.length) { erroEsperava("INICIO", linhas.length-1); return; }
-	const proxLinha = linhas[comecoDaProximaLinhaBoa];
 
-	const linhaQAchouInicio = transpilaAteInicio(proxLinha, comecoDaProximaLinhaBoa, linhas);
+	const linhaQAchouInicio = transpilaAteInicio(linhas, comecoDaProximaLinhaBoa);
 	if (!linhaQAchouInicio) return;
 
-	console.log(`DEU BOM na linha ${(linhaQAchouInicio+1)}: '${linhas[linhaQAchouInicio]}'`);
 	programaTraduzido += "\n\n";
 
 	// inicio
-
-	document.getElementById("jsOutput").value = programaTraduzido;
-	
-	for (let i = iPrimeiraLinhaValida; i < linhas.length; ++i) {
-		const linha = linhas[i];
-		if (estaEmBrancoOuComentario(linha)) continue;
-		
-		console.log(`transpilarei linha '${linha}'`);	
-		// tokenizaLinha(linha);
+	if (!transpilaLinhasAteFimAlgoritmo(linhas, linhaQAchouInicio + 1)) {
+		jsOutput.value	= ""
+		return;
 	}
 
+	console.log(`TRANSPILOU COM SUCESSO`);
+	jsOutput.value = programaTraduzido;
 
 }
 
-/** @param {String} linha  @param {Number} indiceDela  @returns {Boolean|Number} */
-const transpilaAteInicio = (linha, indiceDela, linhas) => {
-	let charsAteAgora = contaEmBranco(linha, 0);
+
+/** @param {String} linha  @param {Number} indiceProximaLinha  @returns {Boolean} */
+const transpilaLinhasAteFimAlgoritmo = (linhas, indiceProximaLinha) => {
+	let i;
+	for (i = indiceProximaLinha; i < linhas.length; ++i) {
+		const linha = linhas[i];
+		if (estaEmBrancoOuComentario(linha)) continue;
+
+		// console.log(`transpilarei linha '${linha}'`);
+		let charsAteAgora = 0;
+		charsAteAgora += contaEmBranco(linha, 0); // pula branco
+
+		const primeiroToken = proxTokenNaLinha(linha, charsAteAgora);
+		const primeiroTokenLower = primeiroToken.toLowerCase();
+		if (primeiroTokenLower == "fimalgoritmo") return true;
+		charsAteAgora += primeiroToken.length;
+
+		const proximosTokens = tokenizaTudoNaLinhaApartirDe(linha, charsAteAgora);
+		
+		// console.log(`tokens: 0: '${primeiroToken}' 1: '${agrega(proximosTokens, "' '")}'`);
+		
+		// const proxToken = proximosTokens[0];
+		// somente um token na linha, é um statement (por ex. repita) ou uma funçao
+
+		if (primeiroTokenLower === "se") {
+			// TODO: dava pra fazer o se transpilar os proprios tokens, menos retrabalho
+			const linhaQueOSeTerminou = transpilaSe(linhas, i, charsAteAgora, proximosTokens);
+			if (linhaQueOSeTerminou === false) { return false; }
+
+			// continue vai rodar ++i
+			i = linhaQueOSeTerminou;
+			continue;
+		}
+
+		const indentacao = 0
+		if (!transpilaLinhaSimples(primeiroToken, proximosTokens, indentacao)) return;
+	}
+
+	erroEsperava("FIMALGORITMO", i - 1);
+	return false;
+}
+
+/** @param {String} linha  @param {Array.<String>} proximosTokens  @returns {Boolean|Number} */
+const transpilaAtribuicao = (identificador, proximosTokens) => {
+	proximosTokens = corrigeOperadores(proximosTokens);
+	programaTraduzido += identificador.toLowerCase() + " = " + agrega(proximosTokens, " ") + ";\n";
+}
+
+/** @param {String} linha  @param {Array.<String>} proximosTokens  @returns {Boolean|Number} */
+const transpilaChamadaFuncao = (identificador, proximosTokens) => {
+	proximosTokens = corrigeOperadores(proximosTokens);
+	identificador = traduzNomeDeFuncao(identificador);
+	programaTraduzido += identificador.toLowerCase() + agrega(proximosTokens, "") + ";\n";
+}
+
+const corrigeOperadores = tokens => {
+	for (let i = 0; i < tokens.length; i++) {
+		// TODO: funçao "troca = por ==="
+		const token = tokens[i];
+		if (token.startsWith('"')) continue;
+		tokens[i] = traduzOperador(token.toLowerCase());
+	}
+	return tokens;
+}
+
+/**
+ * @param {Array.<String>} linhas 
+ * @param {Number} indiceLinhaDoSe 
+ * @param {Number} charsAteAgora 
+ * @param {Array.<String>} proximosTokensDoSe 
+ * @returns {Boolean|Number} linha que ele terminou de parsar o if ou false
+ */
+const transpilaSe = (linhas, indiceLinhaDoSe, charsAteAgora, proximosTokensDoSe) => {
+	// 'charsAteAgora' começa logo após o se
+	const linhaDoSe = linhas[indiceLinhaDoSe];
+	charsAteAgora += contaEmBranco(linhaDoSe, charsAteAgora); // pula brancos
+
+	// se
+	programaTraduzido += "\nif (";
+
+	proximosTokensDoSe = corrigeOperadores(proximosTokensDoSe);
+	const ultimoToken = proximosTokensDoSe[proximosTokensDoSe.length - 1];
+	if (ultimoToken !== "entao") { erroEsperava("ENTAO", indiceLinhaDoSe, charsAteAgora, linhaDoSe.length - charsAteAgora); return false; }
+
+	for (let i = 0; i < proximosTokensDoSe.length - 1; i++) {
+		const proxTokenLower = toLowerSeNaoForString(proximosTokensDoSe[i]);
+		// pode ter aqui um entao inesperado
+		if (proxTokenLower === "entao") { erroNaoEsperava(indiceLinhaDoSe, linhaDoSe.toLowerCase().indexOf("entao"), 5); return false; }
+		
+		programaTraduzido += traduzOperador(proxTokenLower);
+		if (i !== proximosTokensDoSe.length - 2) programaTraduzido += " ";
+	}
+	programaTraduzido += ") {\n";
+
+	// senao / fimse
+	let iLinha;
+	for (iLinha = indiceLinhaDoSe + 1; iLinha < linhas.length; ++iLinha) {
+		
+		charsAteAgora = 0;
+		const linha = linhas[iLinha];
+		if (estaEmBrancoOuComentario(linha)) continue;
+		
+		charsAteAgora += contaEmBranco(linha, charsAteAgora); // pula brancos
+		
+		const primeiroToken = proxTokenNaLinha(linha, charsAteAgora);
+		// console.log("transpilando '" + linha + "' tok: ' " + primeiroToken);
+		if (primeiroToken === "senao") {
+			programaTraduzido += "} else {\n";
+			continue;
+		}
+		
+		if (primeiroToken === "fimse") {
+			programaTraduzido += "}\n\n";
+			return iLinha+1;
+		}
+
+		charsAteAgora += primeiroToken.length;
+
+		const indentacao = 1;
+		const proximosTokens = tokenizaTudoNaLinhaApartirDe(linha, charsAteAgora);
+		if (!transpilaLinhaSimples(primeiroToken, proximosTokens, indentacao)) return false;
+	}
+
+	// return iLinha;
+
+	erroEsperava("FIMSE", iLinha - 1);
+	return false;
+}
+
+const transpilaLinhaSimples = (primeiroToken, proximosTokens, indentacao) => {
+	
+	for (let i = 0; i < indentacao; i++) {
+		programaTraduzido += "    ";
+	}
+	
+	const proxToken = proximosTokens[0];
+	if (proxToken === false) {
+			
+		// "repita" pode estar sozinha na linha
+		const primTokLow = primeiroToken.toLowerCase();
+		if (ehReservada(primTokLow)) { erroSintaxe(i, charsAteAgora - primeiroToken.length, primeiroToken.length); return false; }
+
+		programaTraduzido += traduzNomeDeFuncao(primTokLow) + "();\n";
+		return true;
+	}
+
+
+	// funcao()
+	if (proxToken === "()") {
+		programaTraduzido += traduzNomeDeFuncao(primeiroToken.toLowerCase()) + "();\n";
+		return true;
+	}
+
+	// funcao(width * 2)
+	if (proxToken === "(") {
+		transpilaChamadaFuncao(primeiroToken, proximosTokens);
+		return true;
+	}
+
+	// algo <-
+	// algo :=
+	if (ehAtribuidor(proxToken)) {
+		// charsAteAgora += proxToken.length;
+		proximosTokens.shift(); // remove o <-
+		transpilaAtribuicao(primeiroToken, proximosTokens);
+		return true;
+	}
+
+	return true;
+}
+
+const mapaDeOperadores = new Map();
+mapaDeOperadores.set("=",          "===");
+mapaDeOperadores.set("e",          "&&");
+mapaDeOperadores.set("ou",         "||");
+mapaDeOperadores.set("nao",        "!");
+mapaDeOperadores.set("falso",      "false");
+mapaDeOperadores.set("verdadeiro", "true");
+
+const traduzOperador = token => {
+	// TODO: isso vai fazer duas operações para pegar o item, da pra fazer somente o get acho
+	if (mapaDeOperadores.has(token))
+		return mapaDeOperadores.get(token);
+	return token;
+}
+
+const toLowerSeNaoForString = token => {
+	if (token.startsWith('"')) return token;
+	return token.toLowerCase();
+}
+
+const traduzNomeDeFuncao = nome => {
+	// TODO: hashtable aqui (new Map())
+	switch (nome) {
+		case "escreva":
+		case "escreval":
+			return "console.log"
+		default:
+			return nome;
+	}
+}
+
+
+/** @param {String} linha  @returns {Boolean|Number} */
+const transpilaAteInicio = (linhas, indicePrimeiraProxLinha) => {
+	const linha = linhas[indicePrimeiraProxLinha];
+	let charsAteAgora = contaEmBranco(linha, 0); // pula branco
 
 	// primeiro token pode ser "inicio" ou "var"
 	const token = proxTokenNaLinha(linha, charsAteAgora);
@@ -202,13 +354,9 @@ const transpilaAteInicio = (linha, indiceDela, linhas) => {
 
 	if (tokenLower == "inicio") {
 
-		// achou de cara, nao teve vars
-		charsAteAgora += token.length;
-		// charsAteAgora += contaEmBranco(linha, charsAteAgora); // pula branco
+		if (!erroSeInicioTiverAlgoDpsDele(linha, indicePrimeiraProxLinha)) return false;
 
-		if (!erroSeInicioTiverAlgoDpsDele(linha, indiceDela)) return false;
-
-		return indiceDela;
+		return indicePrimeiraProxLinha;
 	}
 
 	if (tokenLower == "var") {
@@ -216,9 +364,9 @@ const transpilaAteInicio = (linha, indiceDela, linhas) => {
 		charsAteAgora += token.length;
 
 		// pode ter vars válidos na propria linha que contém o var
-		if (!parsaVariaveisNaLinha(linha, charsAteAgora, indiceDela)) return false;
+		if (!parsaVariaveisNaLinha(linha, charsAteAgora, indicePrimeiraProxLinha)) return false;
 
-		let indiceProximaLinha = indiceDela;
+		let indiceProximaLinha = indicePrimeiraProxLinha;
 		while (true) {
 			
 			indiceProximaLinha += 1;
@@ -239,7 +387,7 @@ const transpilaAteInicio = (linha, indiceDela, linhas) => {
 		// entáo não dará loop infinito e nada depois desse while vai ser chamado
 	}
 
-	erroNaoEsperava(indiceDela, charsAteAgora, token.length);
+	erroNaoEsperava(indicePrimeiraProxLinha, charsAteAgora, token.length);
 	// console.error(`Linha ${indiceDela+1}: Token nao identificado '${token}' esperava 'var' ou 'inicio'`);
 	return false;
 }
@@ -324,7 +472,10 @@ const parsaVariaveisNaLinha = (linha, charsAteAgora, indiceDela) => {
 		
 		if (proxToken.toLowerCase() === "vetor") {
 			// dava pra parsar o resto do vetor aqui mas foda-se
-			programaTraduzido += `let ${nomeDoBaguio} = []; // tipo vetor\n`.toLowerCase();
+			programaTraduzido += `let ${nomeDoBaguio} = []; // TODO: Array(n).fill(default)\n`.toLowerCase();
+
+			// TODO: implementa
+			parsaVetor(linha, charsAteAgora, indiceDela);
 		
 		} else {
 
@@ -342,9 +493,14 @@ const parsaVariaveisNaLinha = (linha, charsAteAgora, indiceDela) => {
 	return true;
 }
 
+/** @param {String} linha  @param {Number} charsAteAgora  @param {Number} indiceDela */
+const parsaVetor = (linha, charsAteAgora, indiceDela) => {
+	console.error("TODO: implementar versão com vetores!");
+}
+
 
 /** @param {Array.<String>} tokens  @param {String} separador  @returns {String} */
-const agregaTokens = (tokens, separador) => {
+const agrega = (tokens, separador) => {
 	if (tokens.length == 0) return ""
 	if (tokens.length == 1) return tokens[0];
 	let aggr = "";
@@ -355,8 +511,6 @@ const agregaTokens = (tokens, separador) => {
 	aggr += tokens[tokens.length - 1];
 	return aggr;
 }
-
-
 
 
 /** @param {String} linha  @param {Number} indiceDela  @returns {Boolean} */
@@ -407,23 +561,41 @@ const contaEmBranco = (linha, comeco) => {
 	return i - comeco;
 }
 
+/** @param {String} linha  @param {Number} comeco  @returns {Array.<String>} */
+const tokenizaTudoNaLinhaApartirDe = (linha, comeco) => {
+	const tokens = [];
+
+	// tokens sempre acabam em false
+	if (comeco === linha.length) tokens.push(false);
+
+	let i; // i == "charsAteAgora"
+	for (i = comeco; i < linha.length;) {
+		i += contaEmBranco(linha, i); // pula brancos
+
+		const token = proxTokenNaLinha(linha, i);
+		tokens.push(token);
+		i += token.length;
+	}
+
+	return tokens;
+}
+
 /** @param {String} linha  @param {Number} comeco  @returns {String|boolean} */
 const proxTokenNaLinha = (linha, comeco) => {
 	const acabou = comeco == linha.length;
 	if (acabou) return false;
 
-	if (linha[comeco] == "/" && linha[comeco+1] == "/") {
-		return false;
-	}
+	const ehComentario = linha[comeco] == "/" && linha[comeco+1] == "/";
+	if (ehComentario) return false;
 
-	// console.log(`TOKENIZAR '${linha.substring(comeco)}'`);
 	const primeiroChar = linha[comeco];
-	if (primeiroChar == "\"") {
-		return extraiString(linha, primeiroChar);
+	if (primeiroChar == '"') {
+		return extraiString(linha, comeco);
 	}
 
 	if (ehSimbolo(primeiroChar)) {
-		return primeiroChar;
+		return extraiSimbolo(linha, comeco);
+		// return primeiroChar;
 	}
 
 	let i;
@@ -476,19 +648,28 @@ const extraiString = (linha, comeco) => {
 	let i;
 	for (i = comeco + 1; i < linha.length; ++i) {
 		const char = linha[i];
-		if (char == "\"") return linha.substring(comeco, i+1);
+		if (char == '"') return linha.substring(comeco, i + 1);
 	}
 	
 	// string nao fechada, em visualg isso é válido
 	return false;
 }
 
-const ehSkipavel = char => {
-	return char === ' ';
+// TODO: precisa?
+/** @param {String} linha  @param {Number} comeco  @returns {String|boolean} */
+const extraiSimbolo = (linha, comeco) => {
+	let i;
+	for (i = comeco; i < linha.length; ++i) {
+		const char = linha[i];
+		if (!ehSimbolo(char)) break;
+	}
+
+	return linha.substring(comeco, i);
 }
-const ehSimbolo = char => {
-	return char === ':' || char === ",";
-}
+
+const ehSkipavel   = char  => char  === " "  || char  === "\t";
+const ehAtribuidor = token => token === ":=" || token === "<-";
+
 
 /** @return {Number} */
 const pegaIndiceDaProximaLinhaNaoVazia = (linhas, comeco) => {
@@ -512,7 +693,7 @@ const estaEmBrancoOuComentario = string => {
 			return false;
 		}
 
-		if (char != " ") return false;
+		if (!ehSkipavel(char)) return false;
 	}
 	return true;
 }
@@ -532,6 +713,11 @@ const erroEsperava = (oqueEsperava, indiceLinha, indiceColuna, tamanhoToken) => 
 	atualizaCursorNoErro(indiceLinha, indiceColuna, tamanhoToken);
 }
 
+const erroSintaxe = (indiceLinha, indiceColuna, tamanhoToken) => {
+	console.error(`erro de sintaxe na linha '${indiceLinha+1}' coluna '${indiceColuna ?? 0}'`);
+	atualizaCursorNoErro(indiceLinha, indiceColuna, tamanhoToken);
+}
+
 const atualizaCursorNoErro = (indiceLinha, indiceColuna, tamanhoToken) => {
 	if (!tamanhoToken) tamanhoToken = 0;
 	if (!indiceColuna) indiceColuna = 0;
@@ -540,3 +726,99 @@ const atualizaCursorNoErro = (indiceLinha, indiceColuna, tamanhoToken) => {
 
 return processa;
 })()
+
+
+// fonte: https://visualg3.com.br/tabelas/
+
+// TODO: até, então, faça, não, senão
+// const palavrasReservadas = [
+// 	"aleatorio",
+// 	"algoritmo",
+// 	"arquivo",
+// 	"asc",
+// 	"ate",
+// 	"carac",
+// 	"caracpnum",
+// 	"caracter",
+// 	"caractere",
+// 	"caso",
+// 	"compr",
+// 	"copia",
+// 	"cronometro",
+// 	"debug",
+// 	"div",
+// 	"e",
+// 	"eco",
+// 	"enquanto",
+// 	"entao",
+// 	"escolha",
+// 	"escreva",
+// 	"escreval",
+// 	"faca",
+// 	"falso",
+// 	"fimalgoritmo",
+// 	"fimenquanto",
+// 	"fimescolha",
+// 	"fimfuncao",
+// 	"fimpara",
+// 	"fimprocedimento",
+// 	"fimrepita",
+// 	"fimse",
+// 	"funcao",
+// 	"inicio",
+// 	"int",
+// 	"inteiro",
+// 	"interrompa",
+// 	"leia",
+// 	"limpatela",
+// 	"logico",
+// 	"maiusc",
+// 	"minusc",
+// 	"mod",
+// 	"mudacor",
+// 	"nao",
+// 	"numpcarac",
+// 	"ou",
+// 	"outrocaso",
+// 	"para",
+// 	"passo",
+// 	"pausa",
+// 	"pos",
+// 	"procedimento",
+// 	"real",
+// 	"repita",
+// 	"retorne",
+// 	"se",
+// 	"senao",
+// 	"timer",
+// 	"var",
+// 	"verdadeiro",
+// 	"vetor",
+// 	"xou",
+// ]
+
+// const operadoresAritimeticos = [
+// 	"^",
+// 	"*",
+// 	"/",
+// 	"\\",
+// 	"+",
+// 	"-",
+// 	"*",
+// ]
+
+// const operadoresRelacionais = [
+// 	">",
+// 	"<",
+// 	"=",
+// 	">=",
+// 	"<=",
+// 	"<>",
+// ]
+
+// const operadoresLogicos = [
+// 	"nao",
+// 	"ou",
+// 	"e",
+// 	"xou",
+// ]

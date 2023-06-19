@@ -28,8 +28,6 @@ document.addEventListener("keydown", evt => {
 });
 
 const processa = () => {
-	console.log("processando");
-	
 	variaveis.clear();
 	codigoTraduzido = "";
 	tabDepth = 0;
@@ -410,10 +408,14 @@ const traduzLinhaAlgoritmo = (primeiroToken, segundoToken, linha, charsAteAgora)
 	if (atribuicoes.includes(segundoToken)) {
 		for (const varName of variaveis.keys()) {
 			if(varName !== primeiroToken) { continue; }
-
-			// console.log("atribuicao: " + linha.substring(charsAteAgora))
 			insertTabs();
-			codigoTraduzido += `${varName} = ${linha.substring(charsAteAgora).trim()}\n`;
+
+			let atribuicao = linha.substring(charsAteAgora).trim();
+			if(variaveis.get(varName) === false) {
+				atribuicao = atribuicao.toLowerCase().replace("verdadeiro", "true").replace("falso", "false");
+			}
+
+			codigoTraduzido += `${varName} = ${atribuicao}\n`;
 			return true;
 		}
 

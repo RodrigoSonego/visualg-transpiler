@@ -412,7 +412,8 @@ const traduzLinhaAlgoritmo = (primeiroToken, segundoToken, linha, charsAteAgora)
 
 			let atribuicao = linha.substring(charsAteAgora).trim();
 			if(variaveis.get(varName) === false) {
-				atribuicao = atribuicao.toLowerCase().replace("verdadeiro", "true").replace("falso", "false");
+				atribuicao = atribuicao.toLowerCase().replace("verdadeiro", "true").replace("falso", "false")
+					.replace(" e ", " & ").replace(" ou ", " | ").replace(" nao ", " !").replace("=","==");
 			}
 
 			codigoTraduzido += `${varName} = ${atribuicao}\n`;
@@ -441,7 +442,7 @@ const traduzLinhaAlgoritmo = (primeiroToken, segundoToken, linha, charsAteAgora)
 	
 		insertTabs();
 
-		const condicaoTraduzida = condicao.replace(" e ", " && ").replace(" ou ", " || ").replace("  nao ", "!")
+		const condicaoTraduzida = condicao.replace(" e ", " & ").replace(" ou ", " | ").replace("  nao ", " !").replace("=","==");
 
 		codigoTraduzido += `if (${condicaoTraduzida}):\n`;
 	

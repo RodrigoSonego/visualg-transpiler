@@ -35,7 +35,8 @@ ace.define('ace/mode/portugol_highlight_rules', ['require', 'exports', 'ace/lib/
         },
         {
           token: "keyword.operator",
-          regex: "(senao)|(se)|(faca)|(va_para)|(=)"
+          regex: /( e )|( ou )|( nao )|(logico)|(inteiro)|(real)|(caractere?)|(fimalgoritmo)|(inicio)|(senao)|(fimse)|(se)|(faca)|(entao)|(=)|(>=)|(>)|(<-)|(:=)|(<=)|(<)/,
+					caseInsensitive: true,
         },
         {
           token: "constant.numeric",
@@ -43,7 +44,7 @@ ace.define('ace/mode/portugol_highlight_rules', ['require', 'exports', 'ace/lib/
         },
         {
           token: "comment.line",
-          regex: "(#)(.*)"
+          regex: "(//)(.*)"
         }
       ]
     }

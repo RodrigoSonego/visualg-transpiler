@@ -280,7 +280,6 @@ const varreVars = (startIndex, linhas) => {
 		if (estaEmBrancoOuComentario(linhas[i])) { continue; }
 
 		const tokens = linhas[i].split(":");
-		console.log(tokens)
 		if (tokens.length != 2) {
 			naoEsperado(i, 0, linhas[i].length);
 			return;
@@ -386,7 +385,11 @@ const transpilaAlgoritmo = (linhas, indexInicio) => {
 		const segundoToken = extraiSimbolo(linha, charsAteAgora);
 
 		charsAteAgora += segundoToken.length;
-		traduzLinhaAlgoritmo(primeiroToken, segundoToken, linha, charsAteAgora)
+		const deuBom = traduzLinhaAlgoritmo(primeiroToken, segundoToken, linha, charsAteAgora)
+		if (deuBom == false) {
+			naoEsperado(i, 0, linha.length);
+			return;
+		}
 	}
 }
 
@@ -518,7 +521,7 @@ const traduzLinhaAlgoritmo = (primeiroToken, segundoToken, linha, charsAteAgora)
 	if (funcoes.includes(primeiroToken)) {
 		if(primeiroToken === "escreva" || primeiroToken === "escreval") {
 			insertTabs();
-			codigoTraduzido += `print${segundoToken}\n`;
+			codigoTraduzido += `print${segundoToken ? segundoToken : "()"}\n`;
 			return true;
 		}
 

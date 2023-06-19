@@ -221,7 +221,7 @@ const transpilaPrimeiraLinhaValida = (linhas) => {
 }
 
 const ehSkipavel = char => {
-	return char === ' ';
+	return char === ' ' || char === "\t";
 }
 
 /**
@@ -230,7 +230,7 @@ const ehSkipavel = char => {
 const skipaLinhasVazias = (linhas, inicio) => {
 	for (let i = inicio; i < linhas.length; ++i) {
 		const linha = linhas[i];
-		if (estaEmBrancoOuComentario(linha) || linha.trim().startsWith("//")) continue;
+		if (estaEmBrancoOuComentario(linha)) continue;
 
 		return i;
 	}
@@ -247,7 +247,7 @@ const estaEmBrancoOuComentario = string => {
 			return false;
 		}
 
-		if (char != " ") return false;
+		if (char != " " || char != "\t") return false;
 	}
 	return true;
 }
@@ -280,8 +280,10 @@ const varreVars = (startIndex, linhas) => {
 		if (estaEmBrancoOuComentario(linhas[i])) { continue; }
 
 		const tokens = linhas[i].split(":");
+		console.log(tokens)
 		if (tokens.length != 2) {
 			naoEsperado(i, 0, linhas[i].length);
+			return;
 		}
 
 		const varNames = tokens[0].trim().split(",");
@@ -341,15 +343,14 @@ const transpilaAlgoritmo = (linhas, indexInicio) => {
 		const linha = linhas[i];
 		if (estaEmBrancoOuComentario(linha)) { continue; }
 		
-
-		//TODO: ver uma maneira de pegar o primeiro token se for uma funcao
-		const primeiroToken = proxPalavra(linha, 0);
+		let charsAteAgora = contaEmBranco(linha, 0)
+		const primeiroToken = proxPalavra(linha, charsAteAgora);
 		if (primeiroToken === false) {
 			naoEsperado(i, 0, 0);
 			return;
 		}
 
-		let charsAteAgora = primeiroToken.length;
+		charsAteAgora += primeiroToken.length;
 		charsAteAgora += contaEmBranco(linha, charsAteAgora);
 
 		if (i === linhas.length - 1 && primeiroToken.toLowerCase() !== "fimalgoritmo") {
@@ -383,12 +384,6 @@ const transpilaAlgoritmo = (linhas, indexInicio) => {
 		}
 
 		const segundoToken = extraiSimbolo(linha, charsAteAgora);
-		// if(segundoToken === false) {
-		// 	naoEsperado(i, charsAteAgora, 0);
-		// 	return;
-		// }
-
-		// temFimSe(linhas, i);
 
 		charsAteAgora += segundoToken.length;
 		traduzLinhaAlgoritmo(primeiroToken, segundoToken, linha, charsAteAgora)
@@ -511,7 +506,7 @@ const traduzLinhaAlgoritmo = (primeiroToken, segundoToken, linha, charsAteAgora)
 		for (const varName of variaveis.keys()) {
 			if(varName !== primeiroToken) { continue; }
 
-			console.log("atribuicao: " + linha.substring(charsAteAgora))
+			// console.log("atribuicao: " + linha.substring(charsAteAgora))
 			insertTabs();
 			codigoTraduzido += `${varName} = ${linha.substring(charsAteAgora).trim()}\n`;
 			return true;
@@ -531,63 +526,42 @@ const traduzLinhaAlgoritmo = (primeiroToken, segundoToken, linha, charsAteAgora)
 	}
 
 	if(primeiroToken == "se") {
-		const condicao = extraiCondicaoSe(linha);
+		const comeco = contaEmBranco(linha, 0) + 2;
+		const condicao = extraiCondicaoSe(linha, comeco);
 		if(condicao === false) {
 			return false;
 		}
-
+	
 		insertTabs();
-		codigoTraduzido += `if (${condicao}):\n`;
 
+		const condicaoTraduzida = condicao.replace(" e ", " && ").replace(" ou ", " || ").replace("  nao ", "!")
+
+		codigoTraduzido += `if (${condicaoTraduzida}):\n`;
+	
 		tabDepth++;
-		console.log("achou se, nova tabDepth: " + tabDepth);
 		return true;
 	}
 
 	if(primeiroToken == "fimse") {
 		--tabDepth;
-		console.log("achou fimse, nova tabDepth: " + tabDepth);
+		return true;
 	}
+
+	if (primeiroToken == "senao") {
+		codigoTraduzido += "else\n"
+		return true;
+	} 
 }
 
-const extraiCondicaoSe = (linha) => {
-	const linhaSemEspaco = linha.trim();
-
-	if (linhaSemEspaco.endsWith("entao")) {
-		return linhaSemEspaco.substring(2, linha.length - 5).trim();
+const extraiCondicaoSe = (linha, comeco) => {
+	if (linha.trimEnd().endsWith("entao")) {
+		return linha.trimEnd().substring(comeco, linha.trimEnd().length - 5).trim();
 	}
 	else {
 		naoEsperado(linha, linha.length - 5, 0);
 		alert("ERRO: Esperava 'entao'");
 	}
 
-	return false;
-}
-
-const temFimSe = (linhas, comeco) => {
-	let ignoreFimCounter = 0;
-
-	for (let i = comeco; i < linhas.length; i++) {
-		const primeiroToken = proxPalavra(linhas[i].trim(), 0);
-
-		if (primeiroToken === "se") {
-			ignoreFimCounter++;
-			console.log(`achou outro se na linha ${i}, vai ignorar ${ignoreFimCounter} fimses`);
-			continue;
-		}
-
-
-		if (primeiroToken === "fimse") {
-			if(ignoreFimCounter > 0) {
-				ignoreFimCounter--;
-				console.log(`achou um fimse na linha ${i}, vai ignorar ${ignoreFimCounter} fimses`);
-				continue;
-			}
-
-			console.log(`achou o fim do se da linha ${comeco} na linha ${i}`);
-			return true;
-		}
-	}
 	return false;
 }
 
